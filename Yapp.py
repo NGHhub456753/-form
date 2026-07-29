@@ -22,7 +22,12 @@ def get_booking_count(selected_date):
     return 0
 
 # --- メイン画面：日時選択 ---
-dates = ["8月10日(月) 10:00〜", "8月10日(月) 14:00〜", "8月11日(火) 10:00〜"]
+dates = [
+    "8月24日 14:00〜",
+    "8月24日 18:00〜",
+    "8月25日 14:00〜",
+    "8月25日 18:00〜"
+]
 selected_date = st.selectbox("参加希望日時を選んでください", dates)
 
 # 残り枠数の計算
@@ -68,7 +73,6 @@ if submit_button:
         else:
             new_booking.to_csv(DATA_FILE, index=False)
             
-        st.balloons()  # お祝いの紙吹雪アニメーション🎉
+        st.balloons()  # お祝いのアニメーション🎉
         st.success(f"🎉 {name} 様、ご予約が完了しました！")
         st.write(f"**確定日時:** {selected_date}")
-        st.write("ご指定のメールアドレスへ確認通知を送信しました（※シミュレーション）。")
