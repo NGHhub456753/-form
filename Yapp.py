@@ -16,8 +16,12 @@ def get_gspread_client():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
+    # Secrets から辞書を作成し、\n を実際の改行コードに確実に置換
+    service_account_info = dict(st.secrets["gcp_service_account"])
+    service_account_info["private_key"] = service_account_info["private_key"].replace("\\n", "\n")
+    
     credentials = Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"],
+        service_account_info,
         scopes=scopes
     )
     return gspread.authorize(credentials)
@@ -92,5 +96,4 @@ if submit_button:
             st.write(f"**確定日時:** {selected_date}")
             st.cache_resource.clear()  # キャッシュをクリアして最新データに更新
         except Exception as e:
-            # 具体的なエラーメッセージを出力
             st.error(f"⚠️ 保存エラーが発生しました: {e}")
