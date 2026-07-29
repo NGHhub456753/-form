@@ -7,12 +7,11 @@ from google.oauth2.service_account import Credentials
 st.set_page_config(page_title="イベント予約システム", page_icon="📝")
 
 CAPACITY = 10
-SPREADSHEET_NAME = "イベント予約一覧"  # Step 1で作ったスプレッドシートの正確な名前
+SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
 # --- Google Sheets 接続関数 ---
 @st.cache_resource
 def get_gspread_client():
-    # Streamlit Secrets から認証情報を読み込み
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
@@ -91,5 +90,6 @@ if submit_button:
             st.balloons()
             st.success(f"🎉 {name} 様、ご予約が完了しました！")
             st.write(f"**確定日時:** {selected_date}")
+            st.cache_resource.clear()  # キャッシュをクリアして最新データに更新
         except Exception as e:
-            st.error("⚠️ 予約データの保存中にエラーが発生しました。設定を確認してください。")
+            st.error("⚠️ 予約データの保存中にエラーが発生しました。スプレッドシートの共有設定や名前を確認してください。")
