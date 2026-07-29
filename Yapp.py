@@ -92,4 +92,5 @@ if submit_button:
             st.write(f"**確定日時:** {selected_date}")
             st.cache_resource.clear()  # キャッシュをクリアして最新データに更新
         except Exception as e:
-            st.error("⚠️ 予約データの保存中にエラーが発生しました。スプレッドシートの共有設定や名前を確認してください。")
+            # 具体的なエラーメッセージを出力
+            st.error(f"⚠️ 保存エラーが発生しました: {e}")
