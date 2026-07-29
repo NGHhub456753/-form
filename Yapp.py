@@ -6,7 +6,6 @@ from google.oauth2.service_account import Credentials
 # --- ページ設定 ---
 st.set_page_config(page_title="イベント予約システム", page_icon="📝")
 
-CAPACITY = 10
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
 # --- Google Sheets 接続関数 ---
@@ -16,7 +15,6 @@ def get_gspread_client():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
-    # Secrets から辞書を作成し、\n を実際の改行コードに確実に置換
     service_account_info = dict(st.secrets["gcp_service_account"])
     service_account_info["private_key"] = service_account_info["private_key"].replace("\\n", "\n")
     
@@ -31,25 +29,9 @@ def get_worksheet():
     sheet = client.open(SPREADSHEET_NAME)
     return sheet.sheet1
 
-# 予約データの読み込み関数
-def load_data():
-    try:
-        ws = get_worksheet()
-        data = ws.get_all_records()
-        return pd.DataFrame(data)
-    except Exception as e:
-        return pd.DataFrame()
-
-# 既存の予約数をカウントする関数
-def get_booking_count(selected_date):
-    df = load_data()
-    if not df.empty and "希望日時" in df.columns:
-        return len(df[df["希望日時"] == selected_date])
-    return 0
-
 # --- メイン画面：日時選択 ---
 st.title("📝 イベント参加予約フォーム")
-st.write("ご希望の日時を選択し、必要事項を入力して「予約する」を押してください。")
+st.write("ご希望の日時を選択し、必要事項を入力して「予約を確定する」を押してください。")
 
 dates = [
     "8月24日 14:00〜",
@@ -58,15 +40,6 @@ dates = [
     "8月25日 18:00〜"
 ]
 selected_date = st.selectbox("参加希望日時を選んでください", dates)
-
-# 残り枠数の計算
-current_count = get_booking_count(selected_date)
-remaining_seats = CAPACITY - current_count
-
-if remaining_seats > 0:
-    st.info(f"💡 【{selected_date}】の残り枠数: あと **{remaining_seats}** 名")
-else:
-    st.error(f"⚠️ 【{selected_date}】は満席です。別の日時を選択してください。")
 
 st.markdown("---")
 
@@ -77,7 +50,7 @@ with st.form("booking_form"):
     email = st.text_input("メールアドレス", placeholder="例: example@email.com")
     note = st.text_area("ご質問・ご要望（任意）", placeholder="配慮事項などがあればご記入ください")
     
-    submit_button = st.form_submit_button("予約を確定する", disabled=(remaining_seats <= 0))
+    submit_button = st.form_submit_button("予約を確定する")
 
 # --- 送信時の処理 ---
 if submit_button:
@@ -94,6 +67,6 @@ if submit_button:
             st.balloons()
             st.success(f"🎉 {name} 様、ご予約が完了しました！")
             st.write(f"**確定日時:** {selected_date}")
-            st.cache_resource.clear()  # キャッシュをクリアして最新データに更新
+            st.cache_resource.clear()  # キャッシュをクリア
         except Exception as e:
             st.error(f"⚠️ 保存エラーが発生しました: {e}")
