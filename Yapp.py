@@ -93,7 +93,7 @@ with st.form("booking_form"):
     
     num_people = st.selectbox(
         "参加人数*",
-        options=["1名", "2名", "3名", "4名", "5名以上（備考欄にご記入ください）"]
+        options=["1名(本人のみ)", "2名", "3名", "4名", "5名以上（備考欄にご記入ください）"]
     )
     
     source = st.selectbox(
