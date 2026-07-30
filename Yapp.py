@@ -15,7 +15,7 @@ SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシート�
 CONTACT_EMAIL = "hanaizu64@gmail.com" 
 
 # ★ 発行されたキャンセルアプリのURL
-CANCEL_APP_URL = "https://your-cancel-app.streamlit.app/"
+CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 
 # --- Google Sheets 接続関数 ---
 @st.cache_resource
