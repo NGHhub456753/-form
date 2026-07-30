@@ -14,7 +14,7 @@ SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシート�
 
 # ★ 明日新しいアドレスが決まったらここを変更してください
 CONTACT_EMAIL = "新しいお問い合わせ用メアド@gmail.com"  # 問い合わせ先アドレス
-ADMIN_EMAIL = "自分のスマホ通知用メアド@gmail.com"  # 管理者（自分）のアドレス
+ADMIN_EMAIL = "hanaizu64@gmail.com"  # 管理者（自分）のアドレス
 
 # ★ キャンセルアプリのURL
 CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
