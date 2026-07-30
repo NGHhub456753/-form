@@ -11,7 +11,7 @@ st.set_page_config(page_title="イベント予約システム", page_icon="📝"
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
-# ★ ここにお問合せ先（他の担当者様）のメールアドレスを入力してください
+# お問合せ先（担当者様）のメールアドレス
 CONTACT_EMAIL = "担当者@example.com" 
 
 # --- Google Sheets 接続関数 ---
@@ -36,7 +36,7 @@ def get_worksheet():
     return sheet.sheet1
 
 # --- メール送信関数 ---
-def send_confirmation_email(to_email, name, date_str, people_str):
+def send_confirmation_email(to_email, name, dates_str, people_str):
     try:
         sender_email = st.secrets["smtp"]["email"]
         sender_password = st.secrets["smtp"]["password"]
@@ -48,8 +48,10 @@ def send_confirmation_email(to_email, name, date_str, people_str):
 以下の内容でご予約を承りました。
 
 ----------------------------------------
-■ ご予約日時：{date_str}
-■ ご予約人数：{people_str}
+■ ご予約日時：
+{dates_str}
+
+■ ご予約人数（各回）：{people_str}
 ----------------------------------------
 
 【お問い合わせ・変更・キャンセルについて】
@@ -63,11 +65,10 @@ def send_confirmation_email(to_email, name, date_str, people_str):
         msg = MIMEMultipart()
         msg["From"] = f"イベント事務局 <{sender_email}>"
         msg["To"] = to_email
-        msg["Reply-To"] = CONTACT_EMAIL  # 返信ボタンを押した際にも担当者に飛ぶ設定
+        msg["Reply-To"] = CONTACT_EMAIL
         msg["Subject"] = subject
         msg.attach(MIMEText(body, "plain"))
 
-        # Gmail SMTPサーバーに接続して送信
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(sender_email, sender_password)
@@ -78,17 +79,22 @@ def send_confirmation_email(to_email, name, date_str, people_str):
         st.warning(f"⚠️ 予約は完了しましたが、確認メールの送信に失敗しました: {e}")
         return False
 
-# --- メイン画面：日時選択 ---
+# --- メイン画面 ---
 st.title("📝 イベント参加予約フォーム")
-st.write("ご希望の日時を選択し、必要事項を入力して「予約を確定する」を押してください。")
+st.write("ご希望の日時（複数選択可）を選択し、必要事項を入力して「予約を確定する」を押してください。")
 
-dates = [
+dates_options = [
     "8月24日 14:00〜",
     "8月24日 18:00〜",
     "8月25日 14:00〜",
     "8月25日 18:00〜"
 ]
-selected_date = st.selectbox("参加希望日時を選んでください", dates)
+
+# ★ 複数選択ができる multiselect に変更
+selected_dates = st.multiselect(
+    "参加希望日時を選んでください（複数選択できます）*", 
+    options=dates_options
+)
 
 st.markdown("---")
 
@@ -118,7 +124,9 @@ with st.form("booking_form"):
 
 # --- 送信時の処理 ---
 if submit_button:
-    if not name or not email or not phone:
+    if not selected_dates:
+        st.warning("⚠️ 参加希望日時を少なくとも1つ選択してください。")
+    elif not name or not email or not phone:
         st.warning("⚠️ お名前、メールアドレス、電話番号は必須項目です。")
     elif "@" not in email or "." not in email:
         st.warning("⚠️ 有効なメールアドレスの形式で入力してください。")
@@ -127,16 +135,21 @@ if submit_button:
     else:
         try:
             ws = get_worksheet()
+            
+            # 複数選択された日程を「、」でつなぐ（例：8月24日 14:00〜、8月25日 18:00〜）
+            dates_formatted = "、\n".join(selected_dates)
+            dates_single_line = "、".join(selected_dates)
+            
             # スプレッドシートに保存
-            ws.append_row([name, email, phone, num_people, source, selected_date, note])
+            ws.append_row([name, email, phone, num_people, source, dates_single_line, note])
             
             # 自動返信メールの送信
-            send_confirmation_email(email, name, selected_date, num_people)
+            send_confirmation_email(email, name, dates_formatted, num_people)
             
             st.balloons()
             st.success(f"🎉 {name} 様（{num_people}）、ご予約が完了しました！")
             st.info(f"✉️ ご予約確認メールを送信しました。ご質問等は {CONTACT_EMAIL} までお問い合わせください。")
-            st.write(f"**確定日時:** {selected_date}")
-            st.cache_resource.clear()  # キャッシュをクリア
+            st.write(f"**確定日時:** {dates_single_line}")
+            st.cache_resource.clear()
         except Exception as e:
             st.error(f"⚠️ 保存エラーが発生しました: {e}")
