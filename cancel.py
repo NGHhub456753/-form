@@ -12,8 +12,9 @@ st.set_page_config(page_title="ご予約キャンセル受付", page_icon="❌")
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
-# ★ 担当者様のお問い合わせ先メールアドレス
-CONTACT_EMAIL = "hanaizu64@gmail.com"
+# ★ 明日新しいアドレスが決まったらここを変更してください
+CONTACT_EMAIL = "hanaizu64@gmail.com"  # 問い合わせ先
+ADMIN_EMAIL = "hanaizu64@gmail.com"  # あなたのスマホに届く管理者通知用アドレス
 
 
 # --- Google Sheets 接続関数 ---
@@ -40,7 +41,7 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# --- メール送信関数 ---
+# --- メール送信関数（予約者＋管理者の両方に送信） ---
 def send_email(to_email, subject, body):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -53,10 +54,13 @@ def send_email(to_email, subject, body):
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
+    # 送信先リスト（予約者 ＋ 管理者の自分）
+    recipients = [to_email, ADMIN_EMAIL]
+
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
     server.login(sender_email, sender_password)
-    server.send_message(msg)
+    server.send_message(msg, to_addrs=recipients)
     server.quit()
     return True
   except Exception as e:
@@ -66,7 +70,7 @@ def send_email(to_email, subject, body):
 
 # セッション状態の初期化
 if "cancel_step" not in st.session_state:
-  st.session_state["cancel_step"] = 1  # 1: 検索画面, 2: 日時選択画面, 3: 完了画面
+  st.session_state["cancel_step"] = 1
 
 # スマホ調整CSS付きタイトル
 st.markdown(
@@ -111,7 +115,6 @@ if st.session_state["cancel_step"] == 1:
         all_records = ws.get_all_values()
 
         found_rows = []
-        # 2行目以降（実データ）をチェック（1列目:名前, 2列目:メール, 6列目:日時, 8列目:ステータス）
         for i, row in enumerate(all_records[1:], start=2):
           if len(row) >= 2:
             name_val = row[0].strip()
@@ -124,7 +127,6 @@ if st.session_state["cancel_step"] == 1:
                 and status_val != "キャンセル済"
             ):
               dates_str = row[5] if len(row) >= 6 else ""
-              # 「、」で分割して個別のリストにする
               dates_list = [
                   d.strip() for d in dates_str.split("、") if d.strip()
               ]
@@ -139,7 +141,7 @@ if st.session_state["cancel_step"] == 1:
           st.session_state["found_rows"] = found_rows
           st.session_state["search_name"] = search_name.strip()
           st.session_state["search_email"] = search_email.strip()
-          st.session_state["cancel_step"] = 2  # 次のステップへ
+          st.session_state["cancel_step"] = 2
           st.rerun()
 
       except Exception as e:
@@ -157,11 +159,10 @@ elif st.session_state["cancel_step"] == 2:
       "キャンセルしたい日時を選択（複数選択可）して、「選んだ日時をキャンセルする」を押してください。"
   )
 
-  # 全予約日時をひとつのリストにまとめる
   all_dates = []
   for item in found_rows:
     all_dates.extend(item["dates_list"])
-  unique_dates = list(dict.fromkeys(all_dates))  # 重複除去
+  unique_dates = list(dict.fromkeys(all_dates))
 
   selected_cancel_dates = st.multiselect(
       "キャンセルしたい日時を選んでください：", options=unique_dates
@@ -181,23 +182,20 @@ elif st.session_state["cancel_step"] == 2:
             row_idx = item["row_index"]
             original_dates = item["dates_list"]
 
-            # 残す日時を計算
             remaining_dates = [
                 d for d in original_dates if d not in selected_cancel_dates
             ]
 
             if not remaining_dates:
-              # ★【ここを修正】全キャンセルの場合：
-              # F列（6列目：希望日時）を空欄にしてクリアする
+              # 全キャンセルの場合は希望日時を空欄にし、ステータスをキャンセル済へ
               ws.update_cell(row_idx, 6, "")
-              # H列（8列目：ステータス）を「キャンセル済」に変更する
               ws.update_cell(row_idx, 8, "キャンセル済")
             else:
-              # 一部キャンセルの場合：残った日時でF列を更新
+              # 一部キャンセルの場合は残った日時で更新
               new_dates_str = "、".join(remaining_dates)
               ws.update_cell(row_idx, 6, new_dates_str)
 
-          # キャンセル完了メール送信
+          # キャンセル完了メール送信（予約者＆管理者）
           cancel_dates_formatted = "、\n".join(selected_cancel_dates)
           subject = (
               "【キャンセル完了】イベント予約のキャンセルを受け付けました"
