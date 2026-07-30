@@ -12,7 +12,7 @@ st.set_page_config(page_title="イベント予約キャンセル受付", page_ic
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
 # ★ 担当者様のお問い合わせ先メールアドレス
-CONTACT_EMAIL = "担当者@example.com" 
+CONTACT_EMAIL = "hanaizu64@gmail.com" 
 
 # --- Google Sheets 接続関数 ---
 @st.cache_resource
@@ -60,59 +60,102 @@ def send_email(to_email, subject, body):
 
 # --- メイン画面：キャンセルフォーム ---
 st.title("❌ ご予約キャンセル受付フォーム")
-st.write("ご予約時に入力した「お名前」と「メールアドレス」を入力して「キャンセルを確定する」を押してください。")
+st.write("ご予約時に入力した「お名前」と「メールアドレス」を入力して予約内容を検索してください。")
 
-with st.form("cancel_form"):
+# セッション状態の初期化
+if "search_done" not in st.session_state:
+    st.session_state["search_done"] = False
+if "matching_rows" not in st.session_state:
+    st.session_state["matching_rows"] = []
+
+with st.form("search_form"):
     cancel_name = st.text_input("お名前（フルネーム）*", placeholder="例: 山田 太郎")
     cancel_email = st.text_input("メールアドレス*", placeholder="例: example@email.com")
     
-    cancel_submit = st.form_submit_button("キャンセルを確定する")
+    search_submit = st.form_submit_button("予約内容を検索する")
 
-if cancel_submit:
+if search_submit:
     if not cancel_name or not cancel_email:
         st.warning("⚠️ お名前とメールアドレスの両方を入力してください。")
+        st.session_state["search_done"] = False
     else:
         try:
             ws = get_worksheet()
             all_records = ws.get_all_values()
             
-            found = False
+            matching_rows = []
             # 2行目以降をチェック（1行目は見出し）
             for i, row in enumerate(all_records[1:], start=2):
                 if len(row) >= 2 and row[0].strip() == cancel_name.strip() and row[1].strip() == cancel_email.strip():
                     current_status = row[7] if len(row) >= 8 else ""
-                    if current_status == "キャンセル済み":
-                        st.info("ℹ️ このご予約はすでにキャンセル処理が完了しています。")
-                        found = True
-                        break
-                    
-                    # H列（8列目）のステータスを「キャンセル済み」に変更
-                    ws.update_cell(i, 8, "キャンセル済み")
-                    found = True
-                    
-                    # キャンセル完了メールをユーザーへ送信
-                    subject = "【キャンセル完了】イベント参加予約のキャンセルを承りました"
-                    body = f"""{cancel_name} 様
+                    if current_status == "確定":
+                        dates_str = row[5] if len(row) >= 6 else "日時記載なし"
+                        matching_rows.append({
+                            "row_index": i,
+                            "dates": dates_str
+                        })
+            
+            st.session_state["matching_rows"] = matching_rows
+            st.session_state["search_done"] = True
+            st.session_state["search_name"] = cancel_name.strip()
+            st.session_state["search_email"] = cancel_email.strip()
+            
+        except Exception as e:
+            st.error(f"⚠️ 検索中にエラーが発生しました: {e}")
+
+# 検索結果が存在する場合、対象日時の選択フォームを表示
+if st.session_state.get("search_done"):
+    matching_rows = st.session_state.get("matching_rows", [])
+    
+    if not matching_rows:
+        st.error("⚠️ 該当する有効なご予約が見つかりませんでした。お名前・メールアドレスをご確認いただくか、既にキャンセル済みかご確認ください。")
+    else:
+        st.markdown("---")
+        st.subheader("📋 キャンセルするご予約の選択")
+        st.write(f"**{st.session_state['search_name']}** 様のご予約情報が見つかりました。キャンセルしたいご予約日時を選択してください。")
+        
+        # 選択肢の作成（行番号をKey、日時文字列をLabelにする）
+        options_dict = {f"予約日時: {item['dates']}": item["row_index"] for item in matching_rows}
+        
+        selected_label = st.radio(
+            "キャンセルするご予約を選択してください：",
+            options=list(options_dict.keys())
+        )
+        
+        if st.button("選んだご予約をキャンセルする", type="primary"):
+            target_row_index = options_dict[selected_label]
+            try:
+                ws = get_worksheet()
+                # H列（8列目）のステータスを「キャンセル済み」に変更
+                ws.update_cell(target_row_index, 8, "キャンセル済み")
+                
+                # キャンセル完了メールの送信
+                subject = "【キャンセル完了】イベント参加予約のキャンセルを承りました"
+                body = f"""{st.session_state['search_name']} 様
 
 イベント参加予約のキャンセル手続きが完了いたしました。
 
-またのご機会がございましたら、ご参加を心よりお待ちしております。
+----------------------------------------
+■ キャンセル対象日時：
+{selected_label.replace('予約日時: ', '')}
+----------------------------------------
+
+またの機会がございましたら、ご参加を心よりお待ちしております。
 
 ----------------------------------------
 【お問い合わせ先】
 {CONTACT_EMAIL}
 ----------------------------------------
 """
-                    send_email(cancel_email, subject, body)
-                    
-                    st.success(f"✅ {cancel_name} 様のご予約のキャンセル処理が完了いたしました。")
-                    st.info("✉️ キャンセル完了の確認メールを送信しました。")
-                    st.cache_resource.clear()
-                    break
-            
-            if not found:
-                st.error("⚠️ 該当するご予約が見つかりませんでした。お名前とメールアドレスをご確認ください。")
+                send_email(st.session_state['search_email'], subject, body)
                 
-        except Exception as e:
-            st.error(f"⚠️ キャンセル処理中にエラーが発生しました: {e}")
-
+                st.success("✅ ご予約のキャンセル処理が完了いたしました。")
+                st.info("✉️ キャンセル完了の確認メールを送信しました。")
+                
+                # セッション初期化
+                st.session_state["search_done"] = False
+                st.session_state["matching_rows"] = []
+                st.cache_resource.clear()
+                
+            except Exception as e:
+                st.error(f"⚠️ キャンセル処理中にエラーが発生しました: {e}")
