@@ -62,7 +62,7 @@ def send_email(to_email, subject, body):
         return False
 
 # --- メイン画面：予約フォーム ---
-st.title("📝 イベント参加予約フォーム")
+st.title("イベント参加予約")
 st.write("ご希望の日時（複数選択可）を選択し、必要事項を入力して「予約を確定する」を押してください。")
 
 dates_options = [
