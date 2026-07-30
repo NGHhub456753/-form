@@ -48,7 +48,14 @@ with st.form("booking_form"):
     st.subheader("参加者情報の入力")
     name = st.text_input("お名前（フルネーム）", placeholder="例: 山田 太郎")
     email = st.text_input("メールアドレス", placeholder="例: example@email.com")
-    note = st.text_area("ご質問・ご要望（任意）", placeholder="配慮事項などがあればご記入ください")
+    
+    # ★ 参加人数の選択項目を追加
+    num_people = st.selectbox(
+        "参加人数",
+        options=["1名", "2名", "3名", "4名", "5名以上（備考欄にご記入ください）"]
+    )
+    
+    note = st.text_area("ご質問・ご要望（任意）", placeholder="配慮事項や、複数人でお越しの際のご連絡などがあればご記入ください")
     
     submit_button = st.form_submit_button("予約を確定する")
 
@@ -61,11 +68,11 @@ if submit_button:
     else:
         try:
             ws = get_worksheet()
-            # スプレッドシートの最終行に直接追加
-            ws.append_row([name, email, selected_date, note])
+            # スプレッドシートに [名前, メールアドレス, 参加人数, 希望日時, 備考] の順で保存
+            ws.append_row([name, email, num_people, selected_date, note])
             
             st.balloons()
-            st.success(f"🎉 {name} 様、ご予約が完了しました！")
+            st.success(f"🎉 {name} 様（{num_people}）、ご予約が完了しました！")
             st.write(f"**確定日時:** {selected_date}")
             st.cache_resource.clear()  # キャッシュをクリア
         except Exception as e:
