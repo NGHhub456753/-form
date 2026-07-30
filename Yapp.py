@@ -11,6 +11,9 @@ st.set_page_config(page_title="イベント予約システム", page_icon="📝"
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
+# ★ ここにお問合せ先（他の担当者様）のメールアドレスを入力してください
+CONTACT_EMAIL = "担当者@example.com" 
+
 # --- Google Sheets 接続関数 ---
 @st.cache_resource
 def get_gspread_client():
@@ -49,13 +52,18 @@ def send_confirmation_email(to_email, name, date_str, people_str):
 ■ ご予約人数：{people_str}
 ----------------------------------------
 
+【お問い合わせ・変更・キャンセルについて】
+ご質問や変更・キャンセル等がございましたら、以下のアドレスまでご連絡ください。
+
+お問い合わせ先：{CONTACT_EMAIL}
+
 当日のご参加を心よりお待ちしております。
-キャンセルやご変更がございましたら、本メールへの返信にてご連絡ください。
 """
 
         msg = MIMEMultipart()
         msg["From"] = f"イベント事務局 <{sender_email}>"
         msg["To"] = to_email
+        msg["Reply-To"] = CONTACT_EMAIL  # 返信ボタンを押した際にも担当者に飛ぶ設定
         msg["Subject"] = subject
         msg.attach(MIMEText(body, "plain"))
 
@@ -93,7 +101,7 @@ with st.form("booking_form"):
     
     num_people = st.selectbox(
         "参加人数*",
-        options=["1名(本人のみ)", "2名", "3名", "4名", "5名以上（備考欄にご記入ください）"]
+        options=["1名", "2名", "3名", "4名", "5名以上（備考欄にご記入ください）"]
     )
     
     source = st.selectbox(
@@ -119,7 +127,7 @@ if submit_button:
     else:
         try:
             ws = get_worksheet()
-            # スプレッドシートに [名前, メールアドレス, 電話番号, 参加人数, きっかけ, 希望日時, 備考] の順で保存
+            # スプレッドシートに保存
             ws.append_row([name, email, phone, num_people, source, selected_date, note])
             
             # 自動返信メールの送信
@@ -127,7 +135,7 @@ if submit_button:
             
             st.balloons()
             st.success(f"🎉 {name} 様（{num_people}）、ご予約が完了しました！")
-            st.info("✉️ ご入力いただいたメールアドレスに予約確認メールを送信しました。")
+            st.info(f"✉️ ご予約確認メールを送信しました。ご質問等は {CONTACT_EMAIL} までお問い合わせください。")
             st.write(f"**確定日時:** {selected_date}")
             st.cache_resource.clear()  # キャッシュをクリア
         except Exception as e:
