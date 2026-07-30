@@ -13,8 +13,8 @@ st.set_page_config(page_title="ご予約キャンセル受付", page_icon="❌")
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
 # ★ 明日新しいアドレスが決まったらここを変更してください
-CONTACT_EMAIL = "hanaizu64@gmail.com"  # 問い合わせ先
-ADMIN_EMAIL = "hanaizu64@gmail.com"  # あなたのスマホに届く管理者通知用アドレス
+CONTACT_EMAIL = "新しいお問い合わせ用メアド@gmail.com"  # 問い合わせ先アドレス
+ADMIN_EMAIL = "自分のスマホ通知用メアド@gmail.com"  # 管理者（自分）のアドレス
 
 
 # --- Google Sheets 接続関数 ---
@@ -41,7 +41,7 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# --- メール送信関数（予約者＋管理者の両方に送信） ---
+# --- メール送信関数（予約者＋管理者＋お問い合わせ先の全宛気に送信） ---
 def send_email(to_email, subject, body):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -54,8 +54,8 @@ def send_email(to_email, subject, body):
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
-    # 送信先リスト（予約者 ＋ 管理者の自分）
-    recipients = [to_email, ADMIN_EMAIL]
+    # 重複して届かないよう set でユニーク化して送信先リストを作成
+    recipients = list({to_email, ADMIN_EMAIL, CONTACT_EMAIL})
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
@@ -195,7 +195,7 @@ elif st.session_state["cancel_step"] == 2:
               new_dates_str = "、".join(remaining_dates)
               ws.update_cell(row_idx, 6, new_dates_str)
 
-          # キャンセル完了メール送信（予約者＆管理者）
+          # キャンセル完了メール送信（予約者＆管理者＆お問い合わせ先）
           cancel_dates_formatted = "、\n".join(selected_cancel_dates)
           subject = (
               "【キャンセル完了】イベント予約のキャンセルを受け付けました"
