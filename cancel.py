@@ -7,12 +7,12 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 # --- ページ設定 ---
-st.set_page_config(page_title="イベント予約キャンセル受付", page_icon="❌")
+st.set_page_config(page_title="ご予約キャンセル受付", page_icon="❌")
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
-# ★ 担当者様のお問い合わせ先メールアドレス
-CONTACT_EMAIL = "hanaizu64@gmail.com" 
+# ★ 担当者様のお問い合わせ先メールアドレス（新しいアドレスに変更してください）
+CONTACT_EMAIL = "hanaizu64@gmail.com"
 
 # --- Google Sheets 接続関数 ---
 @st.cache_resource
@@ -59,143 +59,132 @@ def send_email(to_email, subject, body):
         return False
 
 # セッション状態の初期化
-if "step" not in st.session_state:
-    st.session_state["step"] = 1  # 1: 検索画面, 2: 日時選択画面
-if "found_rows" not in st.session_state:
-    st.session_state["found_rows"] = []
+if "cancel_step" not in st.session_state:
+    st.session_state["cancel_step"] = 1  # 1: 検索/照会画面, 2: 完了画面
 
-st.title("ご予約キャンセルフォーム")
+# ★ タイトル（スマホでも1行に収まる調整CSS付き）
+st.markdown("""
+    <style>
+    .custom-title {
+        font-size: 1.7rem !important;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        word-break: keep-all;
+        white-space: nowrap;
+    }
+    </style>
+    <h1 class="custom-title">❌ ご予約キャンセル</h1>
+""", unsafe_allow_html=True)
 
 # ==========================================
-# ステップ 1: 予約検索画面
+# ステップ 1: 予約照会・キャンセル選択画面
 # ==========================================
-if st.session_state["step"] == 1:
-    st.write("ご予約時に入力した「お名前」と「メールアドレス」を入力して予約内容を検索してください。")
+if st.session_state["cancel_step"] == 1:
+    st.write("ご予約時にご登録いただいた「お名前」と「メールアドレス」を入力して検索してください。")
 
     with st.form("search_form"):
-        cancel_name = st.text_input("お名前（フルネーム）*", placeholder="例: 山田 太郎")
-        cancel_email = st.text_input("メールアドレス*", placeholder="例: example@email.com")
-        
-        search_submit = st.form_submit_button("予約内容を検索する")
+        search_name = st.text_input("お名前（フルネーム）*", placeholder="例: 山田 太郎")
+        search_email = st.text_input("メールアドレス*", placeholder="例: example@email.com")
+        search_button = st.form_submit_button("予約を照会する")
 
-    if search_submit:
-        if not cancel_name or not cancel_email:
+    if search_button:
+        if not search_name or not search_email:
             st.warning("⚠️ お名前とメールアドレスの両方を入力してください。")
         else:
             try:
                 ws = get_worksheet()
-                all_records = ws.get_all_values()
-                
-                found_rows = []
-                # 2行目以降をチェック（1行目は見出し）
-                for i, row in enumerate(all_records[1:], start=2):
-                    if len(row) >= 2 and row[0].strip() == cancel_name.strip() and row[1].strip() == cancel_email.strip():
-                        current_status = row[7] if len(row) >= 8 else ""
-                        if current_status == "確定":
-                            dates_str = row[5] if len(row) >= 6 else ""
-                            # 「、」で分割して個別の日時リストにする
-                            dates_list = [d.strip() for d in dates_str.split("、") if d.strip()]
-                            found_rows.append({
-                                "row_index": i,
-                                "dates_list": dates_list
-                            })
-                
-                if not found_rows:
-                    st.error("⚠️ 該当する有効なご予約が見つかりませんでした。お名前・メールアドレスをご確認いただくか、既にキャンセル済みかご確認ください。")
-                else:
-                    st.session_state["found_rows"] = found_rows
-                    st.session_state["search_name"] = cancel_name.strip()
-                    st.session_state["search_email"] = cancel_email.strip()
-                    st.session_state["step"] = 2  # ステップ2（日時選択画面）へ切り替え
-                    st.rerun()
-                
-            except Exception as e:
-                st.error(f"⚠️ 検索中にエラーが発生しました: {e}")
+                data = ws.get_all_records()
+                df = pd.DataFrame(data)
 
-# ==========================================
-# ステップ 2: 日時選択・キャンセル確定画面
-# ==========================================
-elif st.session_state["step"] == 2:
-    found_rows = st.session_state.get("found_rows", [])
-    
-    st.subheader("📋 キャンセルする日時の選択")
-    st.write(f"**{st.session_state['search_name']}** 様の有効なご予約が見つかりました。")
-    st.write("キャンセルしたい日時を選択（複数選択可）して、「選んだ日時をキャンセルする」を押してください。")
-    
-    # すべての予約日時をまとめたリストを作成
-    all_dates_options = []
-    for item in found_rows:
-        all_dates_options.extend(item["dates_list"])
-    
-    # 重複を除去
-    unique_dates_options = list(dict.fromkeys(all_dates_options))
-    
-    # 複数選択可能なマルチセレクトを表示
-    selected_cancel_dates = st.multiselect(
-        "キャンセルしたい日時を選んでください：",
-        options=unique_dates_options
-    )
-    
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        if st.button("選んだ日時をキャンセルする", type="primary"):
-            if not selected_cancel_dates:
-                st.warning("⚠️ キャンセルしたい日時を1つ以上選択してください。")
-            else:
+                if df.empty:
+                    st.error("❌ 現在、予約データが存在しません。")
+                else:
+                    # 名前・メールの一致かつ、キャンセルされていないデータ（Status!=キャンセル）を検索
+                    # 列名が合致しているか確認（名前, メールアドレス, ステータス）
+                    filtered_df = df[
+                        (df["名前"].astype(str).str.strip() == search_name.strip()) & 
+                        (df["メールアドレス"].astype(str).str.strip() == search_email.strip()) &
+                        (df["ステータス"].astype(str) != "キャンセル")
+                    ]
+
+                    if filtered_df.empty:
+                        st.error("❌ 該当するご予約が見つかりませんでした。入力内容（お名前・メールアドレス）をご確認いただくか、すでにキャンセル処理が完了している可能性があります。")
+                    else:
+                        st.session_state["found_reservation"] = filtered_df
+                        st.session_state["search_name"] = search_name
+                        st.session_state["search_email"] = search_email
+
+            except Exception as e:
+                st.error(f"⚠️ 照会中にエラーが発生しました: {e}")
+
+    # 検索結果が存在する場合にキャンセルの選択を表示
+    if "found_reservation" in st.session_state:
+        st.markdown("---")
+        st.success("🎉 ご予約情報が見つかりました。キャンセルする日程を選択してください。")
+        
+        found_df = st.session_state["found_reservation"]
+        
+        for idx, row in found_df.iterrows():
+            st.markdown(f"**お名前:** {row['名前']} 様")
+            st.markdown(f"**人数:** {row['人数']}")
+            st.markdown(f"**ご予約日時:** {row['希望日時']}")
+            
+            # スプレッドシートの行番号を計算 (ヘッダー1行 + 1-indexed)
+            row_number = idx + 2
+            
+            cancel_reason = st.text_input("キャンセル理由（任意）", key=f"reason_{row_number}")
+            
+            if st.button("この予約をキャンセルする", key=f"btn_{row_number}"):
                 try:
                     ws = get_worksheet()
+                    # H列（ステータス）を「キャンセル」に更新
+                    ws.update_cell(row_number, 8, "キャンセル")
                     
-                    # 各行について処理
-                    for item in found_rows:
-                        row_idx = item["row_index"]
-                        original_dates = item["dates_list"]
-                        
-                        # 残す日時を計算（キャンセル対象に含まれない日時）
-                        remaining_dates = [d for d in original_dates if d not in selected_cancel_dates]
-                        
-                        if not remaining_dates:
-                            # すべてキャンセルされた場合はステータスを「キャンセル済み」に変更
-                            ws.update_cell(row_idx, 8, "キャンセル済み")
-                        else:
-                            # 一部キャンセルされた場合は、F列に残った日時だけを「、」区切りで上書き更新
-                            new_dates_str = "、".join(remaining_dates)
-                            ws.update_cell(row_idx, 6, new_dates_str)
-                    
-                    # キャンセル完了メールの送信
-                    cancel_dates_formatted = "、\n".join(selected_cancel_dates)
-                    subject = "【キャンセル完了】イベント参加予約のキャンセルを承りました"
-                    body = f"""{st.session_state['search_name']} 様
+                    # キャンセル通知メール送信
+                    subject = "【キャンセル完了】イベント予約のキャンセルを受け付けました"
+                    body = f"""{row['名前']} 様
 
-イベント参加予約のキャンセル手続きが完了いたしました。
+いつもご利用いただきありがとうございます。
+以下のイベントご予約のキャンセル手続きが完了いたしました。
 
 ----------------------------------------
-■ キャンセルした日時：
-{cancel_dates_formatted}
+■ キャンセル完了日時：
+{row['希望日時']}
+
+■ 人数：{row['人数']}
 ----------------------------------------
 
-またの機会がございましたら、ご参加を心よりお待ちしております。
+またのご機会がございましたら、ご参加を心よりお待ちしております。
 
-----------------------------------------
-【お問い合わせ先】
-{CONTACT_EMAIL}
-----------------------------------------
+【お問い合わせ】
+ご不明な点がございましたら、以下のアドレスまでご連絡ください。
+お問い合わせ先：{CONTACT_EMAIL}
 """
-                    send_email(st.session_state['search_email'], subject, body)
+                    send_email(row['メールアドレス'], subject, body)
                     
-                    st.success("✅ 選択された日時のキャンセル処理が完了いたしました！")
-                    st.info("✉️ キャンセル完了の確認メールを送信しました。")
+                    st.session_state["cancelled_name"] = row['名前']
+                    st.session_state["cancelled_dates"] = row['希望日時']
+                    st.session_state["cancel_step"] = 2
                     
-                    # セッション初期化（1分後や別操作用にリセット）
-                    st.session_state["step"] = 1
-                    st.session_state["found_rows"] = []
+                    # 検索結果セッションの削除
+                    del st.session_state["found_reservation"]
                     st.cache_resource.clear()
-                    
+                    st.rerun()
+
                 except Exception as e:
                     st.error(f"⚠️ キャンセル処理中にエラーが発生しました: {e}")
 
-    with col2:
-        if st.button("← 最初からやり直す"):
-            st.session_state["step"] = 1
-            st.session_state["found_rows"] = []
-            st.rerun()
+# ==========================================
+# ステップ 2: キャンセル完了画面（フォーム非表示）
+# ==========================================
+elif st.session_state["cancel_step"] == 2:
+    st.success(f"✅ {st.session_state['cancelled_name']} 様のご予約キャンセル手続きが完了しました。")
+    st.info(f"ご登録のメールアドレス宛に、キャンセル確認メールをお送りしました。")
+    
+    st.markdown("---")
+    st.write(f"**キャンセル完了内容:** {st.session_state['cancelled_dates']}")
+    st.markdown("---")
+    
+    if st.button("← トップページに戻る"):
+        st.session_state["cancel_step"] = 1
+        st.rerun()
