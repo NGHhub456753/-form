@@ -64,7 +64,7 @@ if "step" not in st.session_state:
 if "found_rows" not in st.session_state:
     st.session_state["found_rows"] = []
 
-st.title("ご予約キャンセル受付フォーム")
+st.title("ご予約キャンセルフォーム")
 
 # ==========================================
 # ステップ 1: 予約検索画面
