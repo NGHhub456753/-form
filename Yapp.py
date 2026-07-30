@@ -11,7 +11,7 @@ st.set_page_config(page_title="イベント参加予約フォーム", page_icon=
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
-# ★ 担当者様のお問い合わせ先メールアドレス
+# ★ 担当者様のお問い合わせ先メールアドレス（新しいアドレスに変更してください）
 CONTACT_EMAIL = "hanaizu64@gmail.com" 
 
 # ★ 発行されたキャンセルアプリのURL
@@ -65,7 +65,19 @@ def send_email(to_email, subject, body):
 if "booking_step" not in st.session_state:
     st.session_state["booking_step"] = 1  # 1: 予約入力画面, 2: 完了画面
 
-st.title("📝 イベント参加予約フォーム")
+# ★ タイトル（スマホでも1行に収まる調整CSS付き）
+st.markdown("""
+    <style>
+    .custom-title {
+        font-size: 1.7rem !important;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        word-break: keep-all;
+        white-space: nowrap;
+    }
+    </style>
+    <h1 class="custom-title">📝 イベント参加予約</h1>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # ステップ 1: 予約入力画面
@@ -155,7 +167,7 @@ if st.session_state["booking_step"] == 1:
 """
                 send_email(email, subject, body)
                 
-                # 完了情報をセッションに保持して、画面切り替え
+                # 完了情報をセッションに保持して画面切り替え
                 st.session_state["complete_name"] = name
                 st.session_state["complete_num_people"] = num_people
                 st.session_state["complete_dates"] = dates_single_line
@@ -168,7 +180,7 @@ if st.session_state["booking_step"] == 1:
                 st.error(f"⚠️ 保存エラーが発生しました: {e}")
 
 # ==========================================
-# ステップ 2: 予約完了画面（フォームを非表示）
+# ステップ 2: 予約完了画面（フォーム非表示）
 # ==========================================
 elif st.session_state["booking_step"] == 2:
     st.balloons()
