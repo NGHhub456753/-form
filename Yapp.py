@@ -25,102 +25,97 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """左下から右上へ羽ばたきながらフェードアウトしていくアニメーション"""
+  """画面左下から中央を通り、右上へ飛び立つアニメーション（軌道修正版）"""
   js_code = """
     <script>
     (function() {
-        const doc = window.parent.document;
+        let doc = window.parent.document;
         
-        // 既存のコンテナがあれば削除
-        const oldContainer = doc.getElementById('crane-animation-container');
-        if (oldContainer) { oldContainer.remove(); }
+        let oldElem = doc.getElementById('crane-anim-layer');
+        if (oldElem) { oldElem.remove(); }
 
-        const htmlContent = `
-        <style id="crane-style">
-        /* 左下から右上へ上昇しながら滑らかにフェードアウト */
-        @keyframes flyLeftToRightFade {
-            0% { 
-                transform: translate(-15vw, 105vh) scale(0.6) rotate(-35deg); 
-                opacity: 0; 
+        let style = doc.createElement('style');
+        style.textContent = `
+            /* 画面の【左下】からスタートして【右上】へ画面を大きく切る軌道 */
+            @keyframes flyDiagonal {
+                0% {
+                    /* 左下の画面内からスタート */
+                    transform: translate(0vw, 85vh) scale(0.6) rotate(-35deg);
+                    opacity: 0;
+                }
+                15% {
+                    opacity: 1;
+                }
+                75% {
+                    opacity: 0.9;
+                }
+                100% {
+                    /* 右上の画面外へ突き抜けてフェードアウト */
+                    transform: translate(105vw, -25vh) scale(1.1) rotate(-20deg);
+                    opacity: 0;
+                }
             }
-            15% { 
-                opacity: 1; 
+            @keyframes wingFlap {
+                0%, 100% { transform: rotate(0deg) scaleY(1); }
+                50% { transform: rotate(-25deg) scaleY(0.65); }
             }
-            65% { 
-                opacity: 0.9; 
+            .crane-anim-container {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                pointer-events: none !important;
+                z-index: 9999999 !important;
+                overflow: hidden !important;
             }
-            100% { 
-                transform: translate(115vw, -35vh) scale(1.1) rotate(-25deg); 
-                opacity: 0; 
+            .egret-bird {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 85px;
+                height: 85px;
+                animation: flyDiagonal 2.2s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
             }
-        }
-        /* パタパタとした羽ばたき */
-        @keyframes wingFlapFast {
-            0%, 100% { transform: rotate(0deg) scaleY(1); }
-            50% { transform: rotate(-22deg) scaleY(0.7); }
-        }
-        .crane-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 999999;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        .egret {
-            position: absolute;
-            width: 90px;
-            height: 90px;
-            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.15));
-            animation: flyLeftToRightFade 2.1s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
-        }
-        .egret-wing {
-            transform-origin: 45% 55%;
-            animation: wingFlapFast 0.2s infinite ease-in-out;
-        }
-        </style>
-        <div id="crane-animation-container" class="crane-container">
+            .egret-wing-part {
+                transform-origin: 45% 55%;
+                animation: wingFlap 0.18s infinite ease-in-out;
+            }
+        `;
+        doc.head.appendChild(style);
+
+        let container = doc.createElement('div');
+        container.id = 'crane-anim-layer';
+        container.className = 'crane-anim-container';
+        
+        container.innerHTML = `
             <svg style="display:none;">
-                <g id="real-egret">
-                    <polygon points="5,35 28,32 35,42 20,45" fill="#E2E8F0"/>
+                <g id="crane-svg-shape">
+                    <polygon points="5,35 28,32 35,42 20,45" fill="#CBD5E1"/>
                     <polygon points="28,32 38,20 42,26 35,42" fill="#FFFFFF"/>
-                    <polygon points="38,20 28,30 20,30" fill="#CBD5E1"/>
                     <polygon points="38,20 48,32 42,42 35,42" fill="#F8FAFC"/>
-                    <polygon points="42,42 48,32 55,48 45,55" fill="#E2E8F0"/>
                     <polygon points="45,55 55,48 78,72 58,82" fill="#FFFFFF"/>
-                    <polygon points="58,82 78,72 62,90" fill="#CBD5E1"/>
                     <polygon points="5,35 28,32 20,30" fill="#FFA500"/>
-                    <polygon points="5,35 20,30 22,28" fill="#FFC107"/>
                     <circle cx="30" cy="27" r="1.8" fill="#1E293B"/>
-                    <g class="egret-wing">
+                    <g class="egret-wing-part">
                         <polygon points="42,42 88,10 65,52" fill="#FFFFFF"/>
-                        <polygon points="65,52 88,10 78,72" fill="#F1F5F9"/>
-                        <polygon points="42,42 65,52 45,55" fill="#E2E8F0"/>
+                        <polygon points="65,52 88,10 78,72" fill="#E2E8F0"/>
                     </g>
                 </g>
             </svg>
-            <!-- 左下から右上へ飛び立つシラサギの群れ（時間差と配置） -->
-            <div class="egret" style="bottom: -10%; left: -5%; animation-delay: 0s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret" style="bottom: -15%; left: 8%; animation-delay: 0.12s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret" style="bottom: -20%; left: 20%; animation-delay: 0.25s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret" style="bottom: -12%; left: 32%; animation-delay: 0.38s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret" style="bottom: -25%; left: 5%; animation-delay: 0.5s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret" style="bottom: -28%; left: 18%; animation-delay: 0.62s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret" style="bottom: -18%; left: 42%; animation-delay: 0.75s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-        </div>
+            <!-- 左下に配置して、時間差で群れのように飛ばす -->
+            <div class="egret-bird" style="margin-left: -5vw; margin-top: 5vh; animation-delay: 0s;"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -10vw; margin-top: 12vh; animation-delay: 0.15s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -2vw; margin-top: 18vh; animation-delay: 0.3s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -8vw; margin-top: 25vh; animation-delay: 0.45s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -15vw; margin-top: 20vh; animation-delay: 0.6s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
         `;
+        
+        doc.body.appendChild(container);
 
-        const div = doc.createElement('div');
-        div.innerHTML = htmlContent;
-        doc.body.appendChild(div);
-
-        // アニメーション終了（3.2秒後）にコンテナを自動消去
         setTimeout(() => {
-            const container = doc.getElementById('crane-animation-container');
-            if (container) { container.remove(); }
-        }, 3200);
+            if (container) container.remove();
+        }, 3500);
     })();
     </script>
     """
@@ -376,7 +371,7 @@ if st.session_state["booking_step"] == 1:
 # ------------------------------------------
 elif st.session_state["booking_step"] == 2:
 
-  # 左下から右上へ羽ばたきながらフェードアウトするアニメーションを発火
+  # 画面左下から右上へと飛び立つアニメーションを発火
   trigger_origami_crane_animation()
 
   st.success(
