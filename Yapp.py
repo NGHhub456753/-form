@@ -89,7 +89,7 @@ st.markdown(
         white-space: nowrap;
     }
     </style>
-    <h1 class="custom-title">📝 折り紙体験ワークショップ 参加予約</h1>
+    <h1 class="custom-title">折り紙体験ワークショップ 参加予約</h1>
 """,
     unsafe_allow_html=True,
 )
