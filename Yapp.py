@@ -167,7 +167,7 @@ if st.session_state["booking_step"] == 1:
     )
 
     st.markdown("---")
-    st.caption(
+    st.markdown(
         "※イベント当日は様子を写真・動画撮影し、SNS等に掲載させていただく場合がございます。"
     )
     agree = st.checkbox(
