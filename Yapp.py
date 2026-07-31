@@ -14,9 +14,9 @@ st.set_page_config(
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
-# ★ 明日新しいアドレスが決まったらここを変更してください
-CONTACT_EMAIL = "hanaizu64@gmail.com"  # お問い合わせ先アドレス
-ADMIN_EMAIL = "hanaizu64@gmail.com"  # 管理者（自分）のアドレス
+# ★ お問い合わせ先・管理者アドレス
+CONTACT_EMAIL = "aonisai0111@gmail.com"
+ADMIN_EMAIL = "aonisai0111@gmail.com"
 
 # ★ キャンセルアプリのURL
 CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
@@ -46,7 +46,7 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# --- メール送信関数（予約者＋管理者＋お問い合わせ先の全宛気に送信） ---
+# --- メール送信関数 ---
 def send_email(to_email, subject, body):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -59,7 +59,6 @@ def send_email(to_email, subject, body):
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
-    # 重複して届かないよう set でユニーク化して送信先リストを作成
     recipients = list({to_email, ADMIN_EMAIL, CONTACT_EMAIL})
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -82,7 +81,7 @@ if "booking_step" not in st.session_state:
 # ==========================================
 if st.session_state["booking_step"] == 1:
 
-  # 見栄えを綺麗にしたヘッダーデザイン
+  # ヘッダーデザイン
   st.markdown(
       """
         <style>
@@ -140,7 +139,6 @@ if st.session_state["booking_step"] == 1:
   * 内容：折り紙ランタン制作ワークショップ
 """)
 
-  # スマホで見やすく「折り紙」を入れた選択肢
   dates_options = [
       "8月24日 14:00〜（折り紙でお花づくり）",
       "8月24日 18:00〜（折り紙でお花づくり）",
@@ -259,10 +257,12 @@ if st.session_state["booking_step"] == 1:
 """
         send_email(email, subject, body)
 
-        # 完了画面へ切り替え
+        # 完了画面へ引き替え用データをセッションに保持
         st.session_state["complete_name"] = name
         st.session_state["complete_num_people"] = num_people
-        st.session_state["complete_dates"] = dates_single_line
+        st.session_state["complete_dates_list"] = (
+            selected_dates  # リストで保持して綺麗に箇条書き化
+        )
         st.session_state["complete_email"] = email
         st.session_state["booking_step"] = 2
         st.cache_resource.clear()
@@ -291,7 +291,12 @@ elif st.session_state["booking_step"] == 2:
   st.subheader("📋 ご予約内容")
   st.write(f"**お名前:** {st.session_state['complete_name']} 様")
   st.write(f"**参加人数:** {st.session_state['complete_num_people']}")
-  st.write(f"**確定日時:** {st.session_state['complete_dates']}")
+
+  # 見やすく箇条書きで確定日時を表示
+  st.write("**確定日時:**")
+  for d in st.session_state.get("complete_dates_list", []):
+    st.write(f"・ {d}")
+
   st.markdown("---")
 
   if st.button("← 続けて別の予約をする"):
