@@ -46,7 +46,7 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# --- メール送信関数（予約者＋管理者＋お問い合わせ先の全宛先に送信） ---
+# --- メール送信関数（予約者＋管理者＋お問い合わせ先の全宛気に送信） ---
 def send_email(to_email, subject, body):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -77,19 +77,19 @@ def send_email(to_email, subject, body):
 if "booking_step" not in st.session_state:
   st.session_state["booking_step"] = 1
 
-# スマホ調整CSS付きタイトル
+# スマホ調整CSS付きタイトル（見切れ防止修正）
 st.markdown(
     """
     <style>
     .custom-title {
-        font-size: 1.6rem !important;
+        font-size: 1.5rem !important;
         font-weight: bold;
         margin-bottom: 0.5rem;
-        word-break: keep-all;
-        white-space: nowrap;
+        word-break: break-word;
+        white-space: normal;
     }
     </style>
-    <h1 class="custom-title">折り紙体験ワークショップ 参加予約</h1>
+    <h1 class="custom-title">📝 折り紙体験ワークショップ 参加予約</h1>
 """,
     unsafe_allow_html=True,
 )
@@ -109,7 +109,7 @@ if st.session_state["booking_step"] == 1:
   * 場所：スターバックス インターパークスタジアム店
   * 内容：折り紙でお花づくりワークショップ
 * **8月25日（14:00〜 / 18:00〜）**
-  * 場所: スターバックスFKD店
+  * 場所：スターバックス FKD店
   * 内容：折り紙ランタン制作ワークショップ
 """)
 
@@ -168,7 +168,7 @@ if st.session_state["booking_step"] == 1:
 
     st.markdown("---")
     st.markdown(
-        "※イベント当日は様子を写真・動画撮影し、SNS等に掲載させていただく場合がございます。"
+        "**※イベント当日は様子を写真・動画撮影し、SNS等に掲載させていただく場合がございます。**"
     )
     agree = st.checkbox(
         "【注意事項】当日の写真撮影・SNS掲載、および前日までのキャンセルについて同意して予約します。*"
