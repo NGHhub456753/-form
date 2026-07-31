@@ -216,8 +216,8 @@ if st.session_state["booking_step"] == 1:
       try:
         ws = get_worksheet()
 
-        dates_formatted = "、\n".join(selected_dates)
-        dates_single_line = "、".join(selected_dates)
+        # スプレッドシートやメール用に改行で繋ぐ
+        dates_formatted = "\n".join(selected_dates)
 
         # スプレッドシートに保存
         ws.append_row([
@@ -226,7 +226,7 @@ if st.session_state["booking_step"] == 1:
             phone,
             num_people,
             source,
-            dates_single_line,
+            dates_formatted,  # スプレッドシート内でも改行表示
             note,
             "確定",
         ])
@@ -260,9 +260,7 @@ if st.session_state["booking_step"] == 1:
         # 完了画面へ引き替え用データをセッションに保持
         st.session_state["complete_name"] = name
         st.session_state["complete_num_people"] = num_people
-        st.session_state["complete_dates_list"] = (
-            selected_dates  # リストで保持して綺麗に箇条書き化
-        )
+        st.session_state["complete_dates_list"] = selected_dates
         st.session_state["complete_email"] = email
         st.session_state["booking_step"] = 2
         st.cache_resource.clear()
@@ -292,7 +290,6 @@ elif st.session_state["booking_step"] == 2:
   st.write(f"**お名前:** {st.session_state['complete_name']} 様")
   st.write(f"**参加人数:** {st.session_state['complete_num_people']}")
 
-  # 見やすく箇条書きで確定日時を表示
   st.write("**確定日時:**")
   for d in st.session_state.get("complete_dates_list", []):
     st.write(f"・ {d}")
