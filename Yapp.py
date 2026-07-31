@@ -77,29 +77,56 @@ def send_email(to_email, subject, body):
 if "booking_step" not in st.session_state:
   st.session_state["booking_step"] = 1
 
-# スマホ調整CSS付きタイトル（見切れ防止修正）
-st.markdown(
-    """
-    <style>
-    .custom-title {
-        font-size: 1.5rem !important;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        word-break: break-word;
-        white-space: normal;
-    }
-    </style>
-    <h1 class="custom-title">折り紙体験ワークショップ    参加予約</h1>
-""",
-    unsafe_allow_html=True,
-)
-
 # ==========================================
 # ステップ 1: 予約入力画面
 # ==========================================
 if st.session_state["booking_step"] == 1:
-  st.write(
-      "ご希望の日時（複数選択可）を選択し、必要事項を入力して「予約を確定する」を押してください。"
+
+  # 見栄えを綺麗にしたヘッダーデザイン
+  st.markdown(
+      """
+        <style>
+        .header-container {
+            background-color: #f8f9fa;
+            padding: 16px 18px;
+            border-radius: 12px;
+            border-left: 5px solid #4A90E2;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .main-title {
+            font-size: 1.35rem !important;
+            font-weight: 800;
+            color: #2C3E50;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+        }
+        .sub-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #4A90E2;
+            background: #EBF3FA;
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .desc-text {
+            font-size: 0.88rem;
+            color: #555;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        </style>
+        
+        <div class="header-container">
+            <div class="main-title">折り紙体験ワークショップ</div>
+            <div class="sub-title">📝 参加予約フォーム</div>
+            <div class="desc-text">
+                ご希望の日時を選択し、必要事項を入力の上「予約を確定する」を押してください。
+            </div>
+        </div>
+    """,
+      unsafe_allow_html=True,
   )
 
   # イベント開催概要の表示
