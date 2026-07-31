@@ -8,7 +8,9 @@ import pandas as pd
 import streamlit as st
 
 # --- ページ設定 ---
-st.set_page_config(page_title="イベント参加予約フォーム", page_icon="📝")
+st.set_page_config(
+    page_title="折り紙体験ワークショップ 参加予約", page_icon="📝"
+)
 
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
@@ -44,7 +46,7 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# --- メール送信関数（予約者＋管理者＋お問い合わせ先の全宛気に送信） ---
+# --- メール送信関数（予約者＋管理者＋お問い合わせ先の全宛先に送信） ---
 def send_email(to_email, subject, body):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -80,14 +82,14 @@ st.markdown(
     """
     <style>
     .custom-title {
-        font-size: 1.7rem !important;
+        font-size: 1.6rem !important;
         font-weight: bold;
         margin-bottom: 0.5rem;
         word-break: keep-all;
         white-space: nowrap;
     }
     </style>
-    <h1 class="custom-title">📝 イベント参加予約</h1>
+    <h1 class="custom-title">📝 折り紙体験ワークショップ 参加予約</h1>
 """,
     unsafe_allow_html=True,
 )
@@ -107,6 +109,7 @@ if st.session_state["booking_step"] == 1:
   * 場所：スターバックス インターパークスタジアム店
   * 内容：折り紙でお花づくりワークショップ
 * **8月25日（14:00〜 / 18:00〜）**
+  * 場所: スターバックスFKD店
   * 内容：折り紙ランタン制作ワークショップ
 """)
 
@@ -204,10 +207,10 @@ if st.session_state["booking_step"] == 1:
         ])
 
         # 確認メール送信
-        subject = "【予約完了】イベント参加予約を受け付けました"
+        subject = "【予約完了】折り紙体験ワークショップの予約を受け付けました"
         body = f"""{name} 様
 
-この度はイベントにお申し込みいただき、誠にありがとうございます。
+この度は「折り紙体験ワークショップ」にお申し込みいただき、誠にありがとうございます。
 以下の内容でご予約を承りました。
 
 ----------------------------------------
