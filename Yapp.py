@@ -24,19 +24,41 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """リアルな折り紙のシラサギが羽ばたくアニメーション演出"""
+  """たくさんの折り紙シラサギが斜め上に飛んでいくアニメーション"""
   crane_html = """<style>
-@keyframes flyUp {
-    0% { transform: translateY(105vh) scale(0.6) rotate(-5deg); opacity: 0; }
+/* 左下から右上へ飛ぶアニメーション */
+@keyframes flyDiagonalRight {
+    0% {
+        transform: translate(-10vw, 105vh) scale(0.5) rotate(-35deg);
+        opacity: 0;
+    }
     15% { opacity: 1; }
-    50% { transform: translateY(45vh) scale(1.1) rotate(5deg); }
     85% { opacity: 1; }
-    100% { transform: translateY(-25vh) scale(0.8) rotate(-10deg); opacity: 0; }
+    100% {
+        transform: translate(105vw, -25vh) scale(0.9) rotate(-20deg);
+        opacity: 0;
+    }
 }
+
+/* 右下から左上へ飛ぶアニメーション */
+@keyframes flyDiagonalLeft {
+    0% {
+        transform: translate(105vw, 105vh) scale(0.5) rotate(35deg) scaleX(-1);
+        opacity: 0;
+    }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% {
+        transform: translate(-15vw, -25vh) scale(0.85) rotate(20deg) scaleX(-1);
+        opacity: 0;
+    }
+}
+
 @keyframes wingFlap {
     0%, 100% { transform: rotate(0deg) scaleY(1); }
     50% { transform: rotate(-15deg) scaleY(0.75); }
 }
+
 .crane-container {
     position: fixed;
     bottom: 0;
@@ -47,18 +69,28 @@ def trigger_origami_crane_animation():
     pointer-events: none;
     overflow: hidden;
 }
+
 .egret {
     position: absolute;
-    width: 90px;
-    height: 90px;
-    animation: flyUp 5s ease-in-out forwards;
+    width: 85px;
+    height: 85px;
     filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
 }
+
+.fly-right {
+    animation: flyDiagonalRight 4.5s ease-in-out forwards;
+}
+
+.fly-left {
+    animation: flyDiagonalLeft 5s ease-in-out forwards;
+}
+
 .egret-wing {
     transform-origin: 45% 55%;
-    animation: wingFlap 0.5s infinite ease-in-out;
+    animation: wingFlap 0.45s infinite ease-in-out;
 }
 </style>
+
 <div class="crane-container">
     <svg style="display:none;">
         <g id="real-egret">
@@ -79,11 +111,23 @@ def trigger_origami_crane_animation():
             </g>
         </g>
     </svg>
-    <div class="egret" style="left: 8%; animation-delay: 0s;"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret" style="left: 28%; animation-delay: 0.5s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret" style="left: 48%; animation-delay: 0.2s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret" style="left: 68%; animation-delay: 0.7s;"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret" style="left: 85%; animation-delay: 0.3s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+
+    <!-- 12羽のシラサギ（時間とサイズをランダム化） -->
+    <!-- 左下から右上群 -->
+    <div class="egret fly-right" style="bottom: -10%; left: -5%; animation-delay: 0s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-right" style="bottom: -20%; left: 5%; animation-delay: 0.3s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-right" style="bottom: -15%; left: 15%; animation-delay: 0.6s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-right" style="bottom: -30%; left: 0%; animation-delay: 0.9s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-right" style="bottom: -25%; left: 25%; animation-delay: 1.2s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-right" style="bottom: -35%; left: 10%; animation-delay: 1.5s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-right" style="bottom: -40%; left: 20%; animation-delay: 1.8s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+
+    <!-- 右下から左上群（アクセント） -->
+    <div class="egret fly-left" style="bottom: -10%; right: -5%; animation-delay: 0.2s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-left" style="bottom: -20%; right: 10%; animation-delay: 0.7s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-left" style="bottom: -25%; right: 20%; animation-delay: 1.1s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-left" style="bottom: -35%; right: 5%; animation-delay: 1.4s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    <div class="egret fly-left" style="bottom: -40%; right: 15%; animation-delay: 1.9s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
 </div>"""
   st.markdown(crane_html, unsafe_allow_html=True)
 
