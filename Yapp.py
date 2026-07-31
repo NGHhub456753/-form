@@ -24,47 +24,92 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """折り紙の白鷺が羽ばたくアニメーション演出"""
+  """リアルな折り紙のシラサギが羽ばたくアニメーション演出"""
   crane_html = """
     <style>
     @keyframes flyUp {
-        0% { transform: translateY(100vh) scale(0.6) rotate(0deg); opacity: 0.9; }
-        50% { transform: translateY(40vh) scale(1) rotate(-10deg); opacity: 1; }
-        100% { transform: translateY(-20vh) scale(0.8) rotate(10deg); opacity: 0; }
+        0% {
+            transform: translateY(105vh) scale(0.6) rotate(-5deg);
+            opacity: 0;
+        }
+        15% {
+            opacity: 1;
+        }
+        50% {
+            transform: translateY(45vh) scale(1.1) rotate(5deg);
+        }
+        85% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-25vh) scale(0.8) rotate(-10deg);
+            opacity: 0;
+        }
     }
     @keyframes wingFlap {
-        0%, 100% { transform: scaleX(1); }
-        50% { transform: scaleX(0.7); }
+        0%, 100% {
+            transform: rotate(0deg) scaleY(1);
+        }
+        50% {
+            transform: rotate(-15deg) scaleY(0.75);
+        }
     }
     .crane-container {
         position: fixed;
-        bottom: -100px;
+        bottom: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
         z-index: 9999;
         pointer-events: none;
-        width: 100%;
-        height: 100vh;
-        left: 0;
-        top: 0;
+        overflow: hidden;
     }
-    .crane {
+    .egret {
         position: absolute;
-        width: 60px;
-        height: 60px;
-        animation: flyUp 4.5s ease-out forwards;
+        width: 90px;
+        height: 90px;
+        animation: flyUp 5s ease-in-out forwards;
+        filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
     }
-    .crane svg {
-        width: 100%;
-        height: 100%;
-        fill: #4A90E2;
-        animation: wingFlap 0.6s infinite ease-in-out;
+    .egret-wing {
+        transform-origin: 45% 55%;
+        animation: wingFlap 0.5s infinite ease-in-out;
     }
     </style>
     <div class="crane-container">
-        <div class="crane" style="left: 10%; animation-delay: 0s;"><svg viewBox="0 0 100 100"><polygon points="50,10 20,80 50,60 80,80"/></svg></div>
-        <div class="crane" style="left: 30%; animation-delay: 0.4s;"><svg viewBox="0 0 100 100"><polygon points="50,10 15,85 50,65 85,85"/></svg></div>
-        <div class="crane" style="left: 50%; animation-delay: 0.2s;"><svg viewBox="0 0 100 100"><polygon points="50,10 20,80 50,60 80,80"/></svg></div>
-        <div class="crane" style="left: 70%; animation-delay: 0.6s;"><svg viewBox="0 0 100 100"><polygon points="50,10 15,85 50,65 85,85"/></svg></div>
-        <div class="crane" style="left: 85%; animation-delay: 0.1s;"><svg viewBox="0 0 100 100"><polygon points="50,10 20,80 50,60 80,80"/></svg></div>
+        <!-- リアルな折り紙シラサギ SVG -->
+        <svg style="display:none;">
+            <g id="real-egret">
+                <!-- 体と頭（折り目シャドウ付き） -->
+                <polygon points="5,35 28,32 35,42 20,45" fill="#E2E8F0"/>
+                <polygon points="28,32 38,20 42,26 35,42" fill="#FFFFFF"/>
+                <polygon points="38,20 28,30 20,30" fill="#CBD5E1"/>
+                <!-- 首 -->
+                <polygon points="38,20 48,32 42,42 35,42" fill="#F8FAFC"/>
+                <polygon points="42,42 48,32 55,48 45,55" fill="#E2E8F0"/>
+                <!-- 胴体・尾羽 -->
+                <polygon points="45,55 55,48 78,72 58,82" fill="#FFFFFF"/>
+                <polygon points="58,82 78,72 62,90" fill="#CBD5E1"/>
+                <!-- くちばし（黄色） -->
+                <polygon points="5,35 28,32 20,30" fill="#FFA500"/>
+                <polygon points="5,35 20,30 22,28" fill="#FFC107"/>
+                <!-- 目 -->
+                <circle cx="30" cy="27" r="1.8" fill="#1E293B"/>
+                <!-- 羽（大きく開いた折り紙の羽） -->
+                <g class="egret-wing">
+                    <polygon points="42,42 88,10 65,52" fill="#FFFFFF"/>
+                    <polygon points="65,52 88,10 78,72" fill="#F1F5F9"/>
+                    <polygon points="42,42 65,52 45,55" fill="#E2E8F0"/>
+                </g>
+            </g>
+        </svg>
+
+        <!-- 5羽のシラサギ（タイミングと位置を散らして配置） -->
+        <div class="egret" style="left: 8%;  animation-delay: 0s;"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret" style="left: 28%; animation-delay: 0.5s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret" style="left: 48%; animation-delay: 0.2s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret" style="left: 68%; animation-delay: 0.7s;"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret" style="left: 85%; animation-delay: 0.3s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
     </div>
     """
   st.markdown(crane_html, unsafe_allow_html=True)
