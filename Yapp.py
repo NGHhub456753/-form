@@ -13,7 +13,7 @@ st.set_page_config(page_title="イベント参加予約フォーム", page_icon=
 SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
 
 # ★ 明日新しいアドレスが決まったらここを変更してください
-CONTACT_EMAIL = "新しいお問い合わせ用メアド@gmail.com"  # 問い合わせ先アドレス
+CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "hanaizu64@gmail.com"  # 管理者（自分）のアドレス
 
 # ★ キャンセルアプリのURL
