@@ -153,10 +153,10 @@ if st.session_state["booking_step"] == 1:
     )
 
     st.markdown("---")
+        st.caption("※当日はイベントの様子を写真撮影し、SNS等に掲載させていただく場合がございます。")
     agree = st.checkbox(
-        "【注意事項】当日のキャンセルは前日までにご連絡ください。上記内容に同意して予約します。"
+        "【注意事項】イベント当日の写真撮影・SNS等への掲載、および前日までのキャンセルについて同意して予約します。*"
     )
-
     submit_button = st.form_submit_button("予約を確定する")
 
   if submit_button:
