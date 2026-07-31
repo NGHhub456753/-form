@@ -25,7 +25,7 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """画面左下から中央を通り、大量のシラサギが右上へ飛び立つアニメーション"""
+  """最初はゆったり立ち上がり、徐々に加速して右上へ飛び立つ大群アニメーション"""
   js_code = """
     <script>
     (function() {
@@ -36,8 +36,8 @@ def trigger_origami_crane_animation():
 
         let style = doc.createElement('style');
         style.textContent = `
-            /* 画面の【左下】からスタートして【右上】へ画面を大きく切る軌道 */
-            @keyframes flyDiagonal {
+            /* 画面の【左下】から最初はゆっくり飛び立ち、加速して【右上】へ抜ける */
+            @keyframes flyDiagonalSlowStart {
                 0% {
                     transform: translate(0vw, 85vh) scale(0.5) rotate(-35deg);
                     opacity: 0;
@@ -73,7 +73,8 @@ def trigger_origami_crane_animation():
                 left: 0;
                 width: 80px;
                 height: 80px;
-                animation: flyDiagonal 2.3s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+                /* cubic-bezier(0.4, 0, 0.2, 1) で最初は少しゆっくり、途中からスムーズに滑空 */
+                animation: flyDiagonalSlowStart 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
             .egret-wing-part {
                 transform-origin: 45% 55%;
@@ -101,32 +102,32 @@ def trigger_origami_crane_animation():
                     </g>
                 </g>
             </svg>
-            <!-- 15羽のシラサギ群（配置・サイズ・出現時間をばらバラに調整） -->
+            <!-- 15羽のシラサギ群（出現タイミングを順次ずらして流れるように演出） -->
             <div class="egret-bird" style="margin-left: -5vw; margin-top: 5vh; animation-delay: 0s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -10vw; margin-top: 12vh; animation-delay: 0.1s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -2vw; margin-top: 18vh; animation-delay: 0.2s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -8vw; margin-top: 25vh; animation-delay: 0.3s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -15vw; margin-top: 20vh; animation-delay: 0.4s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -10vw; margin-top: 12vh; animation-delay: 0.12s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -2vw; margin-top: 18vh; animation-delay: 0.24s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -8vw; margin-top: 25vh; animation-delay: 0.36s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -15vw; margin-top: 20vh; animation-delay: 0.48s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
             
-            <div class="egret-bird" style="margin-left: -4vw; margin-top: 10vh; animation-delay: 0.5s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -12vw; margin-top: 4vh; animation-delay: 0.6s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -6vw; margin-top: 22vh; animation-delay: 0.7s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -18vw; margin-top: 15vh; animation-delay: 0.8s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -3vw; margin-top: 28vh; animation-delay: 0.9s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -4vw; margin-top: 10vh; animation-delay: 0.6s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -12vw; margin-top: 4vh; animation-delay: 0.72s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -6vw; margin-top: 22vh; animation-delay: 0.84s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -18vw; margin-top: 15vh; animation-delay: 0.96s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -3vw; margin-top: 28vh; animation-delay: 1.08s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
             
-            <div class="egret-bird" style="margin-left: -9vw; margin-top: 8vh; animation-delay: 1.0s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -14vw; margin-top: 24vh; animation-delay: 1.1s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -7vw; margin-top: 16vh; animation-delay: 1.2s; transform: scale(1.15);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -11vw; margin-top: 2vh; animation-delay: 1.3s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -5vw; margin-top: 30vh; animation-delay: 1.4s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -9vw; margin-top: 8vh; animation-delay: 1.2s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -14vw; margin-top: 24vh; animation-delay: 1.32s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -7vw; margin-top: 16vh; animation-delay: 1.44s; transform: scale(1.15);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -11vw; margin-top: 2vh; animation-delay: 1.56s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
+            <div class="egret-bird" style="margin-left: -5vw; margin-top: 30vh; animation-delay: 1.68s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
         `;
         
         doc.body.appendChild(container);
 
-        // 全員飛び去るまで（約4.0秒後）保持して自動消去
+        // 全員飛んでいき終わるまで（約4.8秒後）保持して自動削除
         setTimeout(() => {
             if (container) container.remove();
-        }, 4000);
+        }, 4800);
     })();
     </script>
     """
@@ -382,7 +383,7 @@ if st.session_state["booking_step"] == 1:
 # ------------------------------------------
 elif st.session_state["booking_step"] == 2:
 
-  # 画面左下から右上へと飛び立つ大量のアニメーションを発火
+  # 画面左下からゆっくりスタートし右上へ向かうアニメーションを発火
   trigger_origami_crane_animation()
 
   st.success(
