@@ -7,22 +7,72 @@ import gspread
 import pandas as pd
 import streamlit as st
 
-# --- ページ設定 ---
+# ==========================================
+# ⚙️ 基本設定 & 定数
+# ==========================================
 st.set_page_config(
     page_title="折り紙体験ワークショップ 参加予約", page_icon="📝"
 )
 
-SPREADSHEET_NAME = "イベント予約一覧"  # Googleスプレッドシートのファイル名
-
-# ★ お問い合わせ先・管理者アドレス
+SPREADSHEET_NAME = "イベント予約一覧"
 CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "aonisai0111@gmail.com"
-
-# ★ キャンセルアプリのURL
 CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 
 
-# --- Google Sheets 接続関数 ---
+# ==========================================
+# 🎨 アニメーション・デザイン専用ブロック
+# ==========================================
+def trigger_origami_crane_animation():
+  """折り紙の白鷺が羽ばたくアニメーション演出"""
+  crane_html = """
+    <style>
+    @keyframes flyUp {
+        0% { transform: translateY(100vh) scale(0.6) rotate(0deg); opacity: 0.9; }
+        50% { transform: translateY(40vh) scale(1) rotate(-10deg); opacity: 1; }
+        100% { transform: translateY(-20vh) scale(0.8) rotate(10deg); opacity: 0; }
+    }
+    @keyframes wingFlap {
+        0%, 100% { transform: scaleX(1); }
+        50% { transform: scaleX(0.7); }
+    }
+    .crane-container {
+        position: fixed;
+        bottom: -100px;
+        z-index: 9999;
+        pointer-events: none;
+        width: 100%;
+        height: 100vh;
+        left: 0;
+        top: 0;
+    }
+    .crane {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        animation: flyUp 4.5s ease-out forwards;
+    }
+    .crane svg {
+        width: 100%;
+        height: 100%;
+        fill: #4A90E2;
+        animation: wingFlap 0.6s infinite ease-in-out;
+    }
+    </style>
+    <div class="crane-container">
+        <div class="crane" style="left: 10%; animation-delay: 0s;"><svg viewBox="0 0 100 100"><polygon points="50,10 20,80 50,60 80,80"/></svg></div>
+        <div class="crane" style="left: 30%; animation-delay: 0.4s;"><svg viewBox="0 0 100 100"><polygon points="50,10 15,85 50,65 85,85"/></svg></div>
+        <div class="crane" style="left: 50%; animation-delay: 0.2s;"><svg viewBox="0 0 100 100"><polygon points="50,10 20,80 50,60 80,80"/></svg></div>
+        <div class="crane" style="left: 70%; animation-delay: 0.6s;"><svg viewBox="0 0 100 100"><polygon points="50,10 15,85 50,65 85,85"/></svg></div>
+        <div class="crane" style="left: 85%; animation-delay: 0.1s;"><svg viewBox="0 0 100 100"><polygon points="50,10 20,80 50,60 80,80"/></svg></div>
+    </div>
+    """
+  st.markdown(crane_html, unsafe_allow_html=True)
+
+
+# ==========================================
+# 🛠️ 外部連携関数（スプレッドシート & メール）
+# ==========================================
 @st.cache_resource
 def get_gspread_client():
   scopes = [
@@ -46,7 +96,6 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# --- メール送信関数 ---
 def send_email(to_email, subject, body):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -72,16 +121,17 @@ def send_email(to_email, subject, body):
     return False
 
 
-# セッション状態の初期化
+# ==========================================
+# 🚀 アプリメイン処理
+# ==========================================
 if "booking_step" not in st.session_state:
   st.session_state["booking_step"] = 1
 
-# ==========================================
+# ------------------------------------------
 # ステップ 1: 予約入力画面
-# ==========================================
+# ------------------------------------------
 if st.session_state["booking_step"] == 1:
 
-  # ヘッダーデザイン
   st.markdown(
       """
         <style>
@@ -128,7 +178,6 @@ if st.session_state["booking_step"] == 1:
       unsafe_allow_html=True,
   )
 
-  # イベント開催概要の表示
   st.info("""
 📍 **開催日程・場所・内容**
 * **8月24日（14:00〜 / 18:00〜）**
@@ -216,22 +265,19 @@ if st.session_state["booking_step"] == 1:
       try:
         ws = get_worksheet()
 
-        # スプレッドシートやメール用に改行で繋ぐ
         dates_formatted = "\n".join(selected_dates)
 
-        # スプレッドシートに保存
         ws.append_row([
             name,
             email,
             phone,
             num_people,
             source,
-            dates_formatted,  # スプレッドシート内でも改行表示
+            dates_formatted,
             note,
             "確定",
         ])
 
-        # 確認メール送信
         subject = "【予約完了】折り紙体験ワークショップの予約を受け付けました"
         body = f"""{name} 様
 
@@ -257,7 +303,6 @@ if st.session_state["booking_step"] == 1:
 """
         send_email(email, subject, body)
 
-        # 完了画面へ引き替え用データをセッションに保持
         st.session_state["complete_name"] = name
         st.session_state["complete_num_people"] = num_people
         st.session_state["complete_dates_list"] = selected_dates
@@ -269,11 +314,13 @@ if st.session_state["booking_step"] == 1:
       except Exception as e:
         st.error(f"⚠️ 保存エラーが発生しました: {e}")
 
-# ==========================================
+# ------------------------------------------
 # ステップ 2: 予約完了画面
-# ==========================================
+# ------------------------------------------
 elif st.session_state["booking_step"] == 2:
-  st.balloons()
+
+  # ★ 白鷺アニメーションを発火（分離した関数を1行呼ぶだけ）
+  trigger_origami_crane_animation()
 
   st.success(
       f"🎉 {st.session_state['complete_name']}"
