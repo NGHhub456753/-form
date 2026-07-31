@@ -6,6 +6,7 @@ from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 # ==========================================
 # ⚙️ 基本設定 & 定数
@@ -24,112 +25,88 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """たくさんの折り紙シラサギが斜め上に飛んでいくアニメーション"""
-  crane_html = """<style>
-/* 左下から右上へ飛ぶアニメーション */
-@keyframes flyDiagonalRight {
-    0% {
-        transform: translate(-10vw, 105vh) scale(0.5) rotate(-35deg);
-        opacity: 0;
+  """たくさんの折り紙シラサギが斜め上に飛んでいくアニメーション（iframe埋め込み方式で確実にレンダリング）"""
+  crane_html = """
+    <style>
+    body {
+        margin: 0;
+        overflow: hidden;
     }
-    15% { opacity: 1; }
-    85% { opacity: 1; }
-    100% {
-        transform: translate(105vw, -25vh) scale(0.9) rotate(-20deg);
-        opacity: 0;
+    @keyframes flyDiagonalRight {
+        0% { transform: translate(-10vw, 105vh) scale(0.5) rotate(-35deg); opacity: 0; }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { transform: translate(105vw, -25vh) scale(0.9) rotate(-20deg); opacity: 0; }
     }
-}
-
-/* 右下から左上へ飛ぶアニメーション */
-@keyframes flyDiagonalLeft {
-    0% {
-        transform: translate(105vw, 105vh) scale(0.5) rotate(35deg) scaleX(-1);
-        opacity: 0;
+    @keyframes flyDiagonalLeft {
+        0% { transform: translate(105vw, 105vh) scale(0.5) rotate(35deg) scaleX(-1); opacity: 0; }
+        15% { opacity: 1; }
+        85% { opacity: 1; }
+        100% { transform: translate(-15vw, -25vh) scale(0.85) rotate(20deg) scaleX(-1); opacity: 0; }
     }
-    15% { opacity: 1; }
-    85% { opacity: 1; }
-    100% {
-        transform: translate(-15vw, -25vh) scale(0.85) rotate(20deg) scaleX(-1);
-        opacity: 0;
+    @keyframes wingFlap {
+        0%, 100% { transform: rotate(0deg) scaleY(1); }
+        50% { transform: rotate(-15deg) scaleY(0.75); }
     }
-}
-
-@keyframes wingFlap {
-    0%, 100% { transform: rotate(0deg) scaleY(1); }
-    50% { transform: rotate(-15deg) scaleY(0.75); }
-}
-
-.crane-container {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.egret {
-    position: absolute;
-    width: 85px;
-    height: 85px;
-    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
-}
-
-.fly-right {
-    animation: flyDiagonalRight 4.5s ease-in-out forwards;
-}
-
-.fly-left {
-    animation: flyDiagonalLeft 5s ease-in-out forwards;
-}
-
-.egret-wing {
-    transform-origin: 45% 55%;
-    animation: wingFlap 0.45s infinite ease-in-out;
-}
-</style>
-
-<div class="crane-container">
-    <svg style="display:none;">
-        <g id="real-egret">
-            <polygon points="5,35 28,32 35,42 20,45" fill="#E2E8F0"/>
-            <polygon points="28,32 38,20 42,26 35,42" fill="#FFFFFF"/>
-            <polygon points="38,20 28,30 20,30" fill="#CBD5E1"/>
-            <polygon points="38,20 48,32 42,42 35,42" fill="#F8FAFC"/>
-            <polygon points="42,42 48,32 55,48 45,55" fill="#E2E8F0"/>
-            <polygon points="45,55 55,48 78,72 58,82" fill="#FFFFFF"/>
-            <polygon points="58,82 78,72 62,90" fill="#CBD5E1"/>
-            <polygon points="5,35 28,32 20,30" fill="#FFA500"/>
-            <polygon points="5,35 20,30 22,28" fill="#FFC107"/>
-            <circle cx="30" cy="27" r="1.8" fill="#1E293B"/>
-            <g class="egret-wing">
-                <polygon points="42,42 88,10 65,52" fill="#FFFFFF"/>
-                <polygon points="65,52 88,10 78,72" fill="#F1F5F9"/>
-                <polygon points="42,42 65,52 45,55" fill="#E2E8F0"/>
+    .crane-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 99999;
+        pointer-events: none;
+    }
+    .egret {
+        position: absolute;
+        width: 85px;
+        height: 85px;
+        filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
+    }
+    .fly-right { animation: flyDiagonalRight 4.5s ease-in-out forwards; }
+    .fly-left { animation: flyDiagonalLeft 5s ease-in-out forwards; }
+    .egret-wing {
+        transform-origin: 45% 55%;
+        animation: wingFlap 0.45s infinite ease-in-out;
+    }
+    </style>
+    <div class="crane-container">
+        <svg style="display:none;">
+            <g id="real-egret">
+                <polygon points="5,35 28,32 35,42 20,45" fill="#E2E8F0"/>
+                <polygon points="28,32 38,20 42,26 35,42" fill="#FFFFFF"/>
+                <polygon points="38,20 28,30 20,30" fill="#CBD5E1"/>
+                <polygon points="38,20 48,32 42,42 35,42" fill="#F8FAFC"/>
+                <polygon points="42,42 48,32 55,48 45,55" fill="#E2E8F0"/>
+                <polygon points="45,55 55,48 78,72 58,82" fill="#FFFFFF"/>
+                <polygon points="58,82 78,72 62,90" fill="#CBD5E1"/>
+                <polygon points="5,35 28,32 20,30" fill="#FFA500"/>
+                <polygon points="5,35 20,30 22,28" fill="#FFC107"/>
+                <circle cx="30" cy="27" r="1.8" fill="#1E293B"/>
+                <g class="egret-wing">
+                    <polygon points="42,42 88,10 65,52" fill="#FFFFFF"/>
+                    <polygon points="65,52 88,10 78,72" fill="#F1F5F9"/>
+                    <polygon points="42,42 65,52 45,55" fill="#E2E8F0"/>
+                </g>
             </g>
-        </g>
-    </svg>
+        </svg>
 
-    <!-- 12羽のシラサギ（時間とサイズをランダム化） -->
-    <!-- 左下から右上群 -->
-    <div class="egret fly-right" style="bottom: -10%; left: -5%; animation-delay: 0s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-right" style="bottom: -20%; left: 5%; animation-delay: 0.3s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-right" style="bottom: -15%; left: 15%; animation-delay: 0.6s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-right" style="bottom: -30%; left: 0%; animation-delay: 0.9s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-right" style="bottom: -25%; left: 25%; animation-delay: 1.2s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-right" style="bottom: -35%; left: 10%; animation-delay: 1.5s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-right" style="bottom: -40%; left: 20%; animation-delay: 1.8s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -10%; left: -5%; animation-delay: 0s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -20%; left: 5%; animation-delay: 0.3s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -15%; left: 15%; animation-delay: 0.6s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -30%; left: 0%; animation-delay: 0.9s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -25%; left: 25%; animation-delay: 1.2s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -35%; left: 10%; animation-delay: 1.5s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-right" style="bottom: -40%; left: 20%; animation-delay: 1.8s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
 
-    <!-- 右下から左上群（アクセント） -->
-    <div class="egret fly-left" style="bottom: -10%; right: -5%; animation-delay: 0.2s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-left" style="bottom: -20%; right: 10%; animation-delay: 0.7s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-left" style="bottom: -25%; right: 20%; animation-delay: 1.1s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-left" style="bottom: -35%; right: 5%; animation-delay: 1.4s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-    <div class="egret fly-left" style="bottom: -40%; right: 15%; animation-delay: 1.9s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-</div>"""
-  st.markdown(crane_html, unsafe_allow_html=True)
+        <div class="egret fly-left" style="bottom: -10%; right: -5%; animation-delay: 0.2s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-left" style="bottom: -20%; right: 10%; animation-delay: 0.7s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-left" style="bottom: -25%; right: 20%; animation-delay: 1.1s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-left" style="bottom: -35%; right: 5%; animation-delay: 1.4s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+        <div class="egret fly-left" style="bottom: -40%; right: 15%; animation-delay: 1.9s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+    </div>
+    """
+  components.html(crane_html, height=0, width=0)
 
 
 # ==========================================
