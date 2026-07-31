@@ -25,7 +25,7 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """たくさんの折り紙シラサギが斜め上に飛んでいくアニメーション（親画面へJavaScript動的注入）"""
+  """速いスピードで左下から右上・左上に勢いよく飛び立つシラサギ群"""
   js_code = """
     <script>
     (function() {
@@ -35,24 +35,38 @@ def trigger_origami_crane_animation():
         const oldContainer = doc.getElementById('crane-animation-container');
         if (oldContainer) { oldContainer.remove(); }
 
-        // スタイルと要素を定義
         const htmlContent = `
         <style id="crane-style">
-        @keyframes flyDiagonalRight {
-            0% { transform: translate(-10vw, 105vh) scale(0.5) rotate(-35deg); opacity: 0; }
-            15% { opacity: 1; }
-            85% { opacity: 1; }
-            100% { transform: translate(105vw, -25vh) scale(0.9) rotate(-20deg); opacity: 0; }
+        /* 左下・画面中央下から右上へ高速で飛び去る */
+        @keyframes flyFastRight {
+            0% { 
+                transform: translate(-10vw, 110vh) scale(0.6) rotate(-35deg); 
+                opacity: 0; 
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { 
+                transform: translate(120vw, -40vh) scale(1.1) rotate(-30deg); 
+                opacity: 0; 
+            }
         }
-        @keyframes flyDiagonalLeft {
-            0% { transform: translate(105vw, 105vh) scale(0.5) rotate(35deg) scaleX(-1); opacity: 0; }
-            15% { opacity: 1; }
-            85% { opacity: 1; }
-            100% { transform: translate(-15vw, -25vh) scale(0.85) rotate(20deg) scaleX(-1); opacity: 0; }
+        /* 右下から左上へ高速で飛び去る */
+        @keyframes flyFastLeft {
+            0% { 
+                transform: translate(110vw, 110vh) scale(0.6) rotate(35deg) scaleX(-1); 
+                opacity: 0; 
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { 
+                transform: translate(-30vw, -40vh) scale(1.0) rotate(25deg) scaleX(-1); 
+                opacity: 0; 
+            }
         }
-        @keyframes wingFlap {
+        /* 高速羽ばたき */
+        @keyframes wingFlapFast {
             0%, 100% { transform: rotate(0deg) scaleY(1); }
-            50% { transform: rotate(-15deg) scaleY(0.75); }
+            50% { transform: rotate(-20deg) scaleY(0.7); }
         }
         .crane-container {
             position: fixed;
@@ -66,15 +80,15 @@ def trigger_origami_crane_animation():
         }
         .egret {
             position: absolute;
-            width: 85px;
-            height: 85px;
-            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
+            width: 90px;
+            height: 90px;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
         }
-        .fly-right { animation: flyDiagonalRight 4.5s ease-in-out forwards; }
-        .fly-left { animation: flyDiagonalLeft 5s ease-in-out forwards; }
+        .fly-right { animation: flyFastRight 2.0s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .fly-left { animation: flyFastLeft 2.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         .egret-wing {
             transform-origin: 45% 55%;
-            animation: wingFlap 0.45s infinite ease-in-out;
+            animation: wingFlapFast 0.2s infinite ease-in-out;
         }
         </style>
         <div id="crane-animation-container" class="crane-container">
@@ -97,31 +111,32 @@ def trigger_origami_crane_animation():
                     </g>
                 </g>
             </svg>
-            <div class="egret fly-right" style="bottom: -10%; left: -5%; animation-delay: 0s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-right" style="bottom: -20%; left: 5%; animation-delay: 0.3s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-right" style="bottom: -15%; left: 15%; animation-delay: 0.6s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-right" style="bottom: -30%; left: 0%; animation-delay: 0.9s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-right" style="bottom: -25%; left: 25%; animation-delay: 1.2s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-right" style="bottom: -35%; left: 10%; animation-delay: 1.5s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-right" style="bottom: -40%; left: 20%; animation-delay: 1.8s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-left" style="bottom: -10%; right: -5%; animation-delay: 0.2s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-left" style="bottom: -20%; right: 10%; animation-delay: 0.7s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-left" style="bottom: -25%; right: 20%; animation-delay: 1.1s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-left" style="bottom: -35%; right: 5%; animation-delay: 1.4s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
-            <div class="egret fly-left" style="bottom: -40%; right: 15%; animation-delay: 1.9s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <!-- 左下〜中央から右上へ駆け抜ける群れ -->
+            <div class="egret fly-right" style="bottom: -10%; left: -5%; animation-delay: 0s;"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-right" style="bottom: -15%; left: 10%; animation-delay: 0.15s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-right" style="bottom: -20%; left: 25%; animation-delay: 0.3s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-right" style="bottom: -10%; left: 40%; animation-delay: 0.45s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-right" style="bottom: -25%; left: 5%; animation-delay: 0.6s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-right" style="bottom: -30%; left: 20%; animation-delay: 0.75s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-right" style="bottom: -15%; left: 55%; animation-delay: 0.9s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+
+            <!-- 右下から対角に交差する群れ -->
+            <div class="egret fly-left" style="bottom: -10%; right: -5%; animation-delay: 0.1s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-left" style="bottom: -20%; right: 15%; animation-delay: 0.35s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-left" style="bottom: -15%; right: 30%; animation-delay: 0.55s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
+            <div class="egret fly-left" style="bottom: -25%; right: 10%; animation-delay: 0.8s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#real-egret"/></svg></div>
         </div>
         `;
 
-        // 親画面のbodyに注入
         const div = doc.createElement('div');
         div.innerHTML = htmlContent;
         doc.body.appendChild(div);
 
-        // 6秒後にアニメーション要素を消去
+        // アニメーション完了（3.5秒後）に自動削除
         setTimeout(() => {
             const container = doc.getElementById('crane-animation-container');
             if (container) { container.remove(); }
-        }, 6000);
+        }, 3500);
     })();
     </script>
     """
@@ -377,7 +392,7 @@ if st.session_state["booking_step"] == 1:
 # ------------------------------------------
 elif st.session_state["booking_step"] == 2:
 
-  # リアルなシラサギアニメーションを発火
+  # 勢いよく飛び立つアニメーションを発火
   trigger_origami_crane_animation()
 
   st.success(
