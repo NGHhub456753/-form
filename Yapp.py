@@ -25,7 +25,7 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """最初はゆったり立ち上がり、徐々に加速して右上へ飛び立つ大群アニメーション"""
+  """シラサギが正確に頭を進行方向（右上）に向け、リアルに飛び立つアニメーション"""
   js_code = """
     <script>
     (function() {
@@ -36,27 +36,36 @@ def trigger_origami_crane_animation():
 
         let style = doc.createElement('style');
         style.textContent = `
-            /* 画面の【左下】から最初はゆっくり飛び立ち、加速して【右上】へ抜ける */
-            @keyframes flyDiagonalSlowStart {
+            /* 進行方向（左下→右上）へ頭をしっかり向けて飛ぶ軌道 */
+            @keyframes flyDiagonalCorrect {
                 0% {
-                    transform: translate(0vw, 85vh) scale(0.5) rotate(-35deg);
+                    /* 頭を進行方向（約25度上）へ向ける */
+                    transform: translate(-10vw, 85vh) scale(0.65) rotate(25deg);
                     opacity: 0;
                 }
                 15% {
                     opacity: 1;
                 }
-                75% {
-                    opacity: 0.9;
+                45% {
+                    /* 画面中央付近：視認しやすいようゆったり通過 */
+                    transform: translate(35vw, 42vh) scale(0.95) rotate(22deg);
+                    opacity: 1;
+                }
+                85% {
+                    opacity: 0.95;
                 }
                 100% {
-                    transform: translate(110vw, -25vh) scale(1.1) rotate(-20deg);
+                    transform: translate(115vw, -20vh) scale(1.2) rotate(18deg);
                     opacity: 0;
                 }
             }
-            @keyframes wingFlap {
+
+            /* 羽ばたきのアニメーション */
+            @keyframes wingFlapReal {
                 0%, 100% { transform: rotate(0deg) scaleY(1); }
-                50% { transform: rotate(-25deg) scaleY(0.65); }
+                50% { transform: rotate(-30deg) scaleY(0.55); }
             }
+
             .crane-anim-container {
                 position: fixed !important;
                 top: 0 !important;
@@ -67,18 +76,19 @@ def trigger_origami_crane_animation():
                 z-index: 9999999 !important;
                 overflow: hidden !important;
             }
+
             .egret-bird {
                 position: absolute;
                 top: 0;
                 left: 0;
-                width: 80px;
-                height: 80px;
-                /* cubic-bezier(0.4, 0, 0.2, 1) で最初は少しゆっくり、途中からスムーズに滑空 */
-                animation: flyDiagonalSlowStart 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                width: 95px;
+                height: 95px;
+                animation: flyDiagonalCorrect 3.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
             }
+
             .egret-wing-part {
-                transform-origin: 45% 55%;
-                animation: wingFlap 0.18s infinite ease-in-out;
+                transform-origin: 35% 50%;
+                animation: wingFlapReal 0.22s infinite ease-in-out;
             }
         `;
         doc.head.appendChild(style);
@@ -87,47 +97,47 @@ def trigger_origami_crane_animation():
         container.id = 'crane-anim-layer';
         container.className = 'crane-anim-container';
         
-        container.innerHTML = `
+        // SVGの向き（右上が頭）に合わせたシラサギ構造
+        let svgShape = `
             <svg style="display:none;">
-                <g id="crane-svg-shape">
-                    <polygon points="5,35 28,32 35,42 20,45" fill="#CBD5E1"/>
-                    <polygon points="28,32 38,20 42,26 35,42" fill="#FFFFFF"/>
-                    <polygon points="38,20 48,32 42,42 35,42" fill="#F8FAFC"/>
-                    <polygon points="45,55 55,48 78,72 58,82" fill="#FFFFFF"/>
-                    <polygon points="5,35 28,32 20,30" fill="#FFA500"/>
-                    <circle cx="30" cy="27" r="1.8" fill="#1E293B"/>
-                    <g class="egret-wing-part">
-                        <polygon points="42,42 88,10 65,52" fill="#FFFFFF"/>
-                        <polygon points="65,52 88,10 78,72" fill="#E2E8F0"/>
+                <g id="real-egret-shape">
+                    <polygon points="15,65 35,55 50,58 30,75" fill="#CBD5E1"/>
+                    <polygon points="35,55 55,45 60,52 50,58" fill="#FFFFFF"/>
+                    <polygon points="55,45 78,25 82,28 60,52" fill="#F8FAFC"/>
+                    <polygon points="78,25 95,20 82,28" fill="#FFA500"/> <circle cx="76" cy="24" r="1.5" fill="#1E293B"/> <g class="egret-wing-part">
+                        <polygon points="40,52 65,8 60,48" fill="#FFFFFF"/>
+                        <polygon points="60,48 65,8 75,40" fill="#E2E8F0"/>
                     </g>
                 </g>
             </svg>
-            <!-- 15羽のシラサギ群（出現タイミングを順次ずらして流れるように演出） -->
-            <div class="egret-bird" style="margin-left: -5vw; margin-top: 5vh; animation-delay: 0s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -10vw; margin-top: 12vh; animation-delay: 0.12s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -2vw; margin-top: 18vh; animation-delay: 0.24s; transform: scale(1.1);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -8vw; margin-top: 25vh; animation-delay: 0.36s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -15vw; margin-top: 20vh; animation-delay: 0.48s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            
-            <div class="egret-bird" style="margin-left: -4vw; margin-top: 10vh; animation-delay: 0.6s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -12vw; margin-top: 4vh; animation-delay: 0.72s; transform: scale(0.8);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -6vw; margin-top: 22vh; animation-delay: 0.84s; transform: scale(1.05);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -18vw; margin-top: 15vh; animation-delay: 0.96s; transform: scale(0.7);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -3vw; margin-top: 28vh; animation-delay: 1.08s; transform: scale(1.0);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            
-            <div class="egret-bird" style="margin-left: -9vw; margin-top: 8vh; animation-delay: 1.2s; transform: scale(0.85);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -14vw; margin-top: 24vh; animation-delay: 1.32s; transform: scale(0.9);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -7vw; margin-top: 16vh; animation-delay: 1.44s; transform: scale(1.15);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -11vw; margin-top: 2vh; animation-delay: 1.56s; transform: scale(0.75);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
-            <div class="egret-bird" style="margin-left: -5vw; margin-top: 30vh; animation-delay: 1.68s; transform: scale(0.95);"><svg viewBox="0 0 100 100"><use href="#crane-svg-shape"/></svg></div>
         `;
-        
+
+        // 10羽の群れ（スマホでも崩れない適切な間隔）
+        let birdsHTML = '';
+        let delays = [0, 0.2, 0.4, 0.65, 0.85, 1.1, 1.3, 1.55, 1.8, 2.0];
+        let offsets = [
+            {x: '-5vw', y: '5vh', s: 1.0},
+            {x: '-12vw', y: '12vh', s: 0.85},
+            {x: '-3vw', y: '20vh', s: 1.1},
+            {x: '-10vw', y: '28vh', s: 0.9},
+            {x: '-16vw', y: '18vh', s: 0.75},
+            {x: '-6vw', y: '8vh', s: 0.95},
+            {x: '-14vw', y: '24vh', s: 0.8},
+            {x: '-4vw', y: '32vh', s: 1.05},
+            {x: '-11vw', y: '15vh', s: 0.88},
+            {x: '-8vw', y: '22vh', s: 0.92}
+        ];
+
+        for(let i = 0; i < delays.length; i++) {
+            birdsHTML += `<div class="egret-bird" style="margin-left: ${offsets[i].x}; margin-top: ${offsets[i].y}; animation-delay: ${delays[i]}s; transform: scale(${offsets[i].s});"><svg viewBox="0 0 100 100"><use href="#real-egret-shape"/></svg></div>`;
+        }
+
+        container.innerHTML = svgShape + birdsHTML;
         doc.body.appendChild(container);
 
-        // 全員飛んでいき終わるまで（約4.8秒後）保持して自動削除
         setTimeout(() => {
             if (container) container.remove();
-        }, 4800);
+        }, 5800);
     })();
     </script>
     """
@@ -383,7 +393,7 @@ if st.session_state["booking_step"] == 1:
 # ------------------------------------------
 elif st.session_state["booking_step"] == 2:
 
-  # 画面左下からゆっくりスタートし右上へ向かうアニメーションを発火
+  # 画面左下から右上へ進行方向に頭を向けたシラサギ群を発火
   trigger_origami_crane_animation()
 
   st.success(
