@@ -25,7 +25,7 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """シラサギが正確に頭を進行方向（右上）に向け、リアルに飛び立つアニメーション"""
+  """画面左上に残骸が出ないよう完全隔離したシラサギ群飛翔アニメーション"""
   js_code = """
     <script>
     (function() {
@@ -36,10 +36,19 @@ def trigger_origami_crane_animation():
 
         let style = doc.createElement('style');
         style.textContent = `
-            /* 進行方向（左下→右上）へ頭をしっかり向けて飛ぶ軌道 */
+            /* SVGテンプレート定義の完全非表示化 */
+            .crane-svg-defs {
+                position: absolute !important;
+                width: 0 !important;
+                height: 0 !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+
+            /* 左下から右上への正確な飛翔軌道 */
             @keyframes flyDiagonalCorrect {
                 0% {
-                    /* 頭を進行方向（約25度上）へ向ける */
                     transform: translate(-10vw, 85vh) scale(0.65) rotate(25deg);
                     opacity: 0;
                 }
@@ -47,7 +56,6 @@ def trigger_origami_crane_animation():
                     opacity: 1;
                 }
                 45% {
-                    /* 画面中央付近：視認しやすいようゆったり通過 */
                     transform: translate(35vw, 42vh) scale(0.95) rotate(22deg);
                     opacity: 1;
                 }
@@ -60,7 +68,7 @@ def trigger_origami_crane_animation():
                 }
             }
 
-            /* 羽ばたきのアニメーション */
+            /* 翼の自然な羽ばたき */
             @keyframes wingFlapReal {
                 0%, 100% { transform: rotate(0deg) scaleY(1); }
                 50% { transform: rotate(-30deg) scaleY(0.55); }
@@ -97,22 +105,26 @@ def trigger_origami_crane_animation():
         container.id = 'crane-anim-layer';
         container.className = 'crane-anim-container';
         
-        // SVGの向き（右上が頭）に合わせたシラサギ構造
+        // 元となる折り紙シラサギのSVG定義（画面外に完全遮断）
         let svgShape = `
-            <svg style="display:none;">
-                <g id="real-egret-shape">
-                    <polygon points="15,65 35,55 50,58 30,75" fill="#CBD5E1"/>
-                    <polygon points="35,55 55,45 60,52 50,58" fill="#FFFFFF"/>
-                    <polygon points="55,45 78,25 82,28 60,52" fill="#F8FAFC"/>
-                    <polygon points="78,25 95,20 82,28" fill="#FFA500"/> <circle cx="76" cy="24" r="1.5" fill="#1E293B"/> <g class="egret-wing-part">
-                        <polygon points="40,52 65,8 60,48" fill="#FFFFFF"/>
-                        <polygon points="60,48 65,8 75,40" fill="#E2E8F0"/>
+            <svg class="crane-svg-defs" aria-hidden="true">
+                <defs>
+                    <g id="real-egret-shape">
+                        <polygon points="15,65 35,55 50,58 30,75" fill="#CBD5E1"/>
+                        <polygon points="35,55 55,45 60,52 50,58" fill="#FFFFFF"/>
+                        <polygon points="55,45 78,25 82,28 60,52" fill="#F8FAFC"/>
+                        <polygon points="78,25 95,20 82,28" fill="#FFA500"/>
+                        <circle cx="76" cy="24" r="1.5" fill="#1E293B"/>
+                        <g class="egret-wing-part">
+                            <polygon points="40,52 65,8 60,48" fill="#FFFFFF"/>
+                            <polygon points="60,48 65,8 75,40" fill="#E2E8F0"/>
+                        </g>
                     </g>
-                </g>
+                </defs>
             </svg>
         `;
 
-        // 10羽の群れ（スマホでも崩れない適切な間隔）
+        // 群れの配置
         let birdsHTML = '';
         let delays = [0, 0.2, 0.4, 0.65, 0.85, 1.1, 1.3, 1.55, 1.8, 2.0];
         let offsets = [
@@ -393,7 +405,7 @@ if st.session_state["booking_step"] == 1:
 # ------------------------------------------
 elif st.session_state["booking_step"] == 2:
 
-  # 画面左下から右上へ進行方向に頭を向けたシラサギ群を発火
+  # 画面左上に残骸が残らないよう完全防護したアニメーションを発火
   trigger_origami_crane_animation()
 
   st.success(
