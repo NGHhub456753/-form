@@ -474,3 +474,4 @@ elif st.session_state["booking_step"] == 2:
   if st.button("← 続けて別の予約をする"):
     st.session_state["booking_step"] = 1
     st.rerun()
+
