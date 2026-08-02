@@ -21,16 +21,16 @@ CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "aonisai0111@gmail.com"
 CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 
-# 開催日時 & 店舗リスト（曜日を月・火に修正）
+# 開催日時 & 店舗リスト
 EVENT_SCHEDULES = [
     {
-        "date": "8月24日（月）18:00〜",
+        "date": "8月24日（土）18:00〜",
         "place": "スターバックス インターパークスタジアム店",
         "title": "折り紙でお花づくり",
         "map": "https://maps.google.com/?q=スターバックス+インターパークスタジアム店",
     },
     {
-        "date": "8月25日（火）14:00〜",
+        "date": "8月25日（日）14:00〜",
         "place": "スターバックス FKD店",
         "title": "折り紙ランタン制作",
         "map": "https://maps.google.com/?q=スターバックス+FKD宇都宮店",
@@ -221,7 +221,7 @@ if st.session_state["reserve_step"] == 1:
         new_row = [
             user_name.strip(),
             user_email.strip(),
-            "",
+            "",  # 電話番号欄等（必要に応じて）
             "",
             "",
             dates_str,
