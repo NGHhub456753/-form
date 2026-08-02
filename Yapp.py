@@ -637,28 +637,24 @@ elif st.session_state["booking_step"] == 3:
   # シラサギ＆紙吹雪アニメーションを発火
   trigger_origami_crane_animation()
 
-  st.success(
-      f"🎉 {st.session_state['complete_name']}"
-      f" 様（{st.session_state['complete_num_people']}）、ご予約が完了しました！"
-  )
+  st.success("🎉 ご予約が完了いたしました！")
 
-  st.info(
-      f"✉️ ご予約確認メールを **{st.session_state['complete_email']}**"
-      f" へ送信しました。ご質問等は {CONTACT_EMAIL} までお問い合わせください。"
-  )
+  # 📋 ご予約内容カード（日時は非表示にしメール案内のみ）
+  with st.container(border=True):
+    st.markdown("### 📋 ご予約内容")
 
-  st.markdown("---")
-  st.subheader("📋 ご予約内容")
-  st.write(f"**お名前:** {st.session_state['complete_name']} 様")
-  st.write(f"**参加人数:** {st.session_state['complete_num_people']}")
+    st.write(f"**お名前:** {st.session_state['complete_name']} 様")
+    st.write(f"**参加人数:** {st.session_state['complete_num_people']}")
 
-  st.write("**確定日時・会場:**")
-  for d in st.session_state.get("complete_dates_list", []):
-    st.write(f"・ {d}")
+    st.write("")
+    st.info(
+        f"✉️ **予約日時の詳細・会場案内メールをお送りしました。**\n\n"
+        f"ご入力いただいたメールアドレス（ **{st.session_state['complete_email']}** ）宛に"
+        "確定日時や会場のGoogleマップリンクを記載した確認メールを送信しておりますので、併せてご確認ください。"
+    )
 
-  st.markdown("---")
-
-  if st.button("← 続けて別の予約をする"):
+  st.write("")
+  if st.button("← 続けて別の予約をする", use_container_width=True):
     st.session_state["booking_step"] = 1
     # 入力値をクリア
     st.session_state["input_name"] = ""
