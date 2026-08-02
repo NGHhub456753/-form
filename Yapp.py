@@ -22,8 +22,8 @@ ADMIN_EMAIL = "aonisai0111@gmail.com"
 CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 
 # 📍 Googleマップ検索URL（店舗用）
-MAP_URL_INTERPARK = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote("スターバックス インターパークスタジアム店")
-MAP_URL_FKD = "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote("スターバックス FKD店")
+MAP_URL_INTERPARK = "https://maps.app.goo.gl/fVjYDUzKtiUHmqoV9?g_st=ic"+ urllib.parse.quote("スターバックス インターパークスタジアム店")
+MAP_URL_FKD = "https://maps.app.goo.gl/yovxvb31XUU9NiFK8?g_st=ic" + urllib.parse.quote("スターバックス FKD店")
 
 
 # ==========================================
