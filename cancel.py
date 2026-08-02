@@ -20,6 +20,10 @@ SPREADSHEET_NAME = "イベント予約一覧"
 CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "aonisai0111@gmail.com"
 
+# Googleマップ URL定義
+MAP_URL_STAGE = "https://maps.app.goo.gl/HH1EytAvCpih6sbaA"  # スタバ ステージ店（インターパーク）
+MAP_URL_FKD = "https://maps.app.goo.gl/yY55vV7HQcb4yHxV7"  # スタバ FKD店
+
 
 # ==========================================
 # 🛠️ 外部連携関数（スプレッドシート & メール）
@@ -63,6 +67,23 @@ def shorten_date_str(text):
   return text
 
 
+# メール用に店舗名をマップリンク化する関数
+def format_date_with_map_link(text):
+  shortened = shorten_date_str(text)
+
+  # スタバ ステージ店をリンク化
+  if "スタバ ステージ店" in shortened:
+    link_html = f'<a href="{MAP_URL_STAGE}" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: bold;">スタバ ステージ店</a>'
+    shortened = shortened.replace("スタバ ステージ店", link_html)
+
+  # スタバ FKD店をリンク化
+  elif "スタバ FKD店" in shortened:
+    link_html = f'<a href="{MAP_URL_FKD}" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: bold;">スタバ FKD店</a>'
+    shortened = shortened.replace("スタバ FKD店", link_html)
+
+  return shortened
+
+
 def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
   try:
     sender_email = st.secrets["smtp"]["email"]
@@ -74,16 +95,16 @@ def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
     msg["Reply-To"] = CONTACT_EMAIL
     msg["Subject"] = "【キャンセル受付】折り紙体験ワークショップの予約キャンセル"
 
-    # キャンセルした日時のリスト
+    # キャンセルした日時のリスト（マップリンク付き）
     cancelled_html = "<br>".join(
-        [f"・ {shorten_date_str(d)}" for d in cancelled_dates]
+        [f"・ {format_date_with_map_link(d)}" for d in cancelled_dates]
     )
 
     # 残っている予約がある場合のみ「引き続きご予約中の日時」ブロックを生成
     remaining_block_html = ""
     if remaining_dates:
       remaining_html = "<br>".join(
-          [f"・ {shorten_date_str(d)}" for d in remaining_dates]
+          [f"・ {format_date_with_map_link(d)}" for d in remaining_dates]
       )
       remaining_block_html = f"""
     <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
