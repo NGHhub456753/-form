@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import uuid
 
 from google.oauth2.service_account import Credentials
 import gspread
@@ -345,8 +346,8 @@ if st.session_state["booking_step"] == 1:
         """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><small style="font-weight:normal; color:#475569;">内容：折り紙でお花づくり</small></div>""",
         unsafe_allow_html=True,
     )
-    d1 = st.checkbox("8月24日（土）14:00〜")
-    d2 = st.checkbox("8月24日（土）18:00〜")
+    d1 = st.checkbox("8月24日（月）14:00〜")
+    d2 = st.checkbox("8月24日（月）18:00〜")
 
     st.write("")
 
@@ -355,8 +356,8 @@ if st.session_state["booking_step"] == 1:
         """<div class="venue-header">📍 スターバックス FKD店<br><small style="font-weight:normal; color:#475569;">内容：折り紙ランタン制作</small></div>""",
         unsafe_allow_html=True,
     )
-    d3 = st.checkbox("8月25日（日）14:00〜")
-    d4 = st.checkbox("8月25日（日）18:00〜")
+    d3 = st.checkbox("8月25日（火）14:00〜")
+    d4 = st.checkbox("8月25日（火）18:00〜")
 
     st.markdown("---")
     st.subheader("参加される方のお名前・ご連絡先")
@@ -427,26 +428,26 @@ if st.session_state["booking_step"] == 1:
     selected_dates_html = []
 
     if d1:
-      txt = "8月24日（土）14:00〜 スターバックス インターパークスタジアム店（折り紙でお花づくり）"
-      html_item = f'8月24日（土）14:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でお花づくり）'
+      txt = "8月24日（月）14:00〜 スターバックス インターパークスタジアム店（折り紙でお花づくり）"
+      html_item = f'8月24日（月）14:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でお花づくり）'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
     if d2:
-      txt = "8月24日（土）18:00〜 スターバックス インターパークスタジアム店（折り紙でお花づくり）"
-      html_item = f'8月24日（土）18:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でお花づくり）'
+      txt = "8月24日（月）18:00〜 スターバックス インターパークスタジアム店（折り紙でお花づくり）"
+      html_item = f'8月24日（月）18:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でお花づくり）'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
     if d3:
-      txt = "8月25日（日）14:00〜 スターバックス FKD店（折り紙ランタン制作）"
-      html_item = f'8月25日（日）14:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
+      txt = "8月25日（火）14:00〜 スターバックス FKD店（折り紙ランタン制作）"
+      html_item = f'8月25日（火）14:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
     if d4:
-      txt = "8月25日（日）18:00〜 スターバックス FKD店（折り紙ランタン制作）"
-      html_item = f'8月25日（日）18:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
+      txt = "8月25日（火）18:00〜 スターバックス FKD店（折り紙ランタン制作）"
+      html_item = f'8月25日（火）18:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
@@ -484,6 +485,9 @@ if st.session_state["booking_step"] == 1:
             [f"・ {item}" for item in selected_dates_html]
         )
 
+        # Gmail自動折りたたみ防止用ID
+        unique_ref = str(uuid.uuid4())[:8]
+
         body_html = f"""
 <!DOCTYPE html>
 <html>
@@ -516,6 +520,11 @@ if st.session_state["booking_step"] == 1:
     </div>
 
     <p style="margin-top: 30px;">当日のご参加を心よりお待ちしております。</p>
+
+    <!-- Gmail自動折りたたみ防止用ダミーID -->
+    <div style="display:none !important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; font-size:0px;">
+        Ref-ID: {unique_ref}
+    </div>
 </body>
 </html>
 """
