@@ -246,13 +246,23 @@ def send_email(to_email, subject, body_html):
 if "booking_step" not in st.session_state:
   st.session_state["booking_step"] = 1
 
-# ------------------------------------------
-# ステップ 1: 予約入力画面
-# ------------------------------------------
-if st.session_state["booking_step"] == 1:
+# 入力項目の初期化
+if "input_name" not in st.session_state:
+  st.session_state["input_name"] = ""
+if "input_email" not in st.session_state:
+  st.session_state["input_email"] = ""
+if "input_phone" not in st.session_state:
+  st.session_state["input_phone"] = ""
+if "input_num_people" not in st.session_state:
+  st.session_state["input_num_people"] = "1名"
+if "input_source" not in st.session_state:
+  st.session_state["input_source"] = "SNS（Instagram / X など）"
+if "input_note" not in st.session_state:
+  st.session_state["input_note"] = ""
 
-  st.markdown(
-      """<style>
+# 共通CSSスタイル
+st.markdown(
+    """<style>
 .header-container {
     background-color: #f8f9fa;
     padding: 18px 20px;
@@ -283,8 +293,6 @@ if st.session_state["booking_step"] == 1:
     margin-top: 12px;
     line-height: 1.6;
 }
-
-/* Venue card header style */
 .venue-header {
     background-color: #F1F5F9;
     border-left: 5px solid #0284C7;
@@ -296,8 +304,6 @@ if st.session_state["booking_step"] == 1:
     margin-top: 15px;
     margin-bottom: 8px;
 }
-
-/* 📌 注意事項・キャンセル方法の読みやすい枠 */
 .notice-card {
     background-color: #F8FAFC;
     border: 2px solid #CBD5E1;
@@ -326,19 +332,130 @@ if st.session_state["booking_step"] == 1:
     margin-bottom: 4px;
 }
 </style>
+""",
+    unsafe_allow_html=True,
+)
 
-<div class="header-container">
+# ------------------------------------------
+# ステップ 1: お客様情報の入力画面
+# ------------------------------------------
+if st.session_state["booking_step"] == 1:
+
+  st.markdown(
+      """<div class="header-container">
     <div class="main-title">折り紙体験ワークショップ</div>
-    <div class="sub-title">📝 参加予約フォーム</div>
+    <div class="sub-title">📝 STEP 1 / 2 : ご連絡先の入力</div>
     <div class="desc-text">
-        ご希望の日時を選び、お名前とご連絡先を入力して「予約を確定する」ボタンを押してください。
+        まずは、参加される方のお名前とご連絡先を入力してください。
     </div>
 </div>
 """,
       unsafe_allow_html=True,
   )
 
-  with st.form("booking_form"):
+  with st.form("info_form"):
+    st.subheader("👤 ご連絡先・アンケート")
+
+    name = st.text_input(
+        "お名前（フルネーム）*",
+        value=st.session_state["input_name"],
+        placeholder="例: 山田 太郎",
+    )
+
+    email = st.text_input(
+        "メールアドレス*",
+        value=st.session_state["input_email"],
+        placeholder="例: example@email.com",
+    )
+
+    phone = st.text_input(
+        "電話番号（任意）",
+        value=st.session_state["input_phone"],
+        placeholder="例: 09012345678（ハイフンなし）",
+    )
+
+    num_people_options = [
+        "1名",
+        "2名",
+        "3名",
+        "4名",
+        "5名以上（下の備考欄にご記入ください）",
+    ]
+    num_idx = (
+        num_people_options.index(st.session_state["input_num_people"])
+        if st.session_state["input_num_people"] in num_people_options
+        else 0
+    )
+    num_people = st.selectbox(
+        "参加人数*", options=num_people_options, index=num_idx
+    )
+
+    source_options = [
+        "SNS（Instagram / X など）",
+        "知人・友人の紹介",
+        "チラシ・ポスター",
+        "その他",
+    ]
+    src_idx = (
+        source_options.index(st.session_state["input_source"])
+        if st.session_state["input_source"] in source_options
+        else 0
+    )
+    source = st.selectbox(
+        "このイベントをどこで知りましたか？",
+        options=source_options,
+        index=src_idx,
+    )
+
+    note = st.text_area(
+        "ご質問・ご要望（任意）",
+        value=st.session_state["input_note"],
+        placeholder=(
+            "お体への配慮や、複数人でお越しのご連絡などがあればご記入ください"
+        ),
+    )
+
+    next_button = st.form_submit_button("日時・場所の選択へ進む ➔")
+
+  if next_button:
+    if not name or not email:
+      st.warning("⚠️ お名前とメールアドレスは必須項目です。")
+    elif "@" not in email or "." not in email:
+      st.warning("⚠️ 有効なメールアドレスの形式で入力してください。")
+    else:
+      st.session_state["input_name"] = name
+      st.session_state["input_email"] = email
+      st.session_state["input_phone"] = phone
+      st.session_state["input_num_people"] = num_people
+      st.session_state["input_source"] = source
+      st.session_state["input_note"] = note
+
+      st.session_state["booking_step"] = 2
+      st.rerun()
+
+# ------------------------------------------
+# ステップ 2: 希望日時の選択 ＆ 同意画面
+# ------------------------------------------
+elif st.session_state["booking_step"] == 2:
+
+  st.markdown(
+      """<div class="header-container">
+    <div class="main-title">折り紙体験ワークショップ</div>
+    <div class="sub-title">🗓️ STEP 2 / 2 : 日時選択・予約確定</div>
+    <div class="desc-text">
+        ご希望の日時を選択し、注意事項をご確認のうえ「予約を確定する」を押してください。
+    </div>
+</div>
+""",
+      unsafe_allow_html=True,
+  )
+
+  st.info(
+      f"👤 **ご予約者情報**: {st.session_state['input_name']} 様"
+      f"（{st.session_state['input_email']}）"
+  )
+
+  with st.form("date_agree_form"):
     st.subheader("🗓️ 参加希望日時の選択（複数えらべます）*")
 
     # 📍 会場 1
@@ -358,47 +475,6 @@ if st.session_state["booking_step"] == 1:
     )
     d3 = st.checkbox("8月25日（火）14:00〜")
     d4 = st.checkbox("8月25日（火）18:00〜")
-
-    st.markdown("---")
-    st.subheader("参加される方のお名前・ご連絡先")
-
-    name = st.text_input("お名前（フルネーム）*", placeholder="例: 山田 太郎")
-
-    email = st.text_input(
-        "メールアドレス*", placeholder="例: example@email.com"
-    )
-
-    phone = st.text_input(
-        "電話番号（任意）", placeholder="例: 09012345678（ハイフンなし）"
-    )
-
-    num_people = st.selectbox(
-        "参加人数*",
-        options=[
-            "1名",
-            "2名",
-            "3名",
-            "4名",
-            "5名以上（下の備考欄にご記入ください）",
-        ],
-    )
-
-    source = st.selectbox(
-        "このイベントをどこで知りましたか？",
-        options=[
-            "SNS（Instagram / X など）",
-            "知人・友人の紹介",
-            "チラシ・ポスター",
-            "その他",
-        ],
-    )
-
-    note = st.text_area(
-        "ご質問・ご要望（任意）",
-        placeholder=(
-            "お体への配慮や、複数人でお越しのご連絡などがあればご記入ください"
-        ),
-    )
 
     # 📌 高齢の方でも読みやすい注意事項カード
     notice_html = """<div class="notice-card">
@@ -421,10 +497,14 @@ if st.session_state["booking_step"] == 1:
 
     submit_button = st.form_submit_button("予約を確定する")
 
+  col_back, _ = st.columns([1, 2])
+  with col_back:
+    if st.button("⬅️ お名前・連絡先の入力に戻る"):
+      st.session_state["booking_step"] = 1
+      st.rerun()
+
   if submit_button:
-    # 画面表示＆スプレッドシート用
     selected_dates_text = []
-    # HTMLメール用（Googleマップリンク付き）
     selected_dates_html = []
 
     if d1:
@@ -453,10 +533,6 @@ if st.session_state["booking_step"] == 1:
 
     if not selected_dates_text:
       st.warning("⚠️ 参加希望日時を少なくとも1つ選択してください。")
-    elif not name or not email:
-      st.warning("⚠️ お名前とメールアドレスは必須項目です。")
-    elif "@" not in email or "." not in email:
-      st.warning("⚠️ 有効なメールアドレスの形式で入力してください。")
     elif not agree:
       st.warning(
           "⚠️ 予約を確定するには「同意確認」のチェックが必要です。"
@@ -466,16 +542,20 @@ if st.session_state["booking_step"] == 1:
         ws = get_worksheet()
 
         dates_formatted_spreadsheet = "\n".join(selected_dates_text)
-        phone_save = phone if phone else "未入力"
+        phone_save = (
+            st.session_state["input_phone"]
+            if st.session_state["input_phone"]
+            else "未入力"
+        )
 
         ws.append_row([
-            name,
-            email,
+            st.session_state["input_name"],
+            st.session_state["input_email"],
             phone_save,
-            num_people,
-            source,
+            st.session_state["input_num_people"],
+            st.session_state["input_source"],
             dates_formatted_spreadsheet,
-            note,
+            st.session_state["input_note"],
             "確定",
         ])
 
@@ -485,14 +565,13 @@ if st.session_state["booking_step"] == 1:
             [f"・ {item}" for item in selected_dates_html]
         )
 
-        # Gmail自動折りたたみ防止用ID
         unique_ref = str(uuid.uuid4())[:8]
 
         body_html = f"""
 <!DOCTYPE html>
 <html>
 <body style="font-family: sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <p>{name} 様</p>
+    <p>{st.session_state['input_name']} 様</p>
     <p>この度は「折り紙体験ワークショップ」にお申し込みいただき、誠にありがとうございます。<br>以下の内容でご予約を承りました。</p>
     
     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 20px 0;">
@@ -504,7 +583,7 @@ if st.session_state["booking_step"] == 1:
             ※ 青文字の店名をタップすると<b>Googleマップ</b>で場所を確認できます。
         </p>
         <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
-        <p style="margin-bottom: 0;"><b>■ ご予約人数（各回）：</b> {num_people}</p>
+        <p style="margin-bottom: 0;"><b>■ ご予約人数（各回）：</b> {st.session_state['input_num_people']}</p>
     </div>
 
     <div style="margin: 25px 0;">
@@ -528,13 +607,16 @@ if st.session_state["booking_step"] == 1:
 </body>
 </html>
 """
-        send_email(email, subject, body_html)
+        send_email(st.session_state["input_email"], subject, body_html)
 
-        st.session_state["complete_name"] = name
-        st.session_state["complete_num_people"] = num_people
+        st.session_state["complete_name"] = st.session_state["input_name"]
+        st.session_state["complete_num_people"] = st.session_state[
+            "input_num_people"
+        ]
         st.session_state["complete_dates_list"] = selected_dates_text
-        st.session_state["complete_email"] = email
-        st.session_state["booking_step"] = 2
+        st.session_state["complete_email"] = st.session_state["input_email"]
+
+        st.session_state["booking_step"] = 3
         st.cache_resource.clear()
         st.rerun()
 
@@ -542,9 +624,9 @@ if st.session_state["booking_step"] == 1:
         st.error(f"⚠️ 保存エラーが発生しました: {e}")
 
 # ------------------------------------------
-# ステップ 2: 予約完了画面
+# ステップ 3: 予約完了画面
 # ------------------------------------------
-elif st.session_state["booking_step"] == 2:
+elif st.session_state["booking_step"] == 3:
 
   # シラサギ＆紙吹雪アニメーションを発火
   trigger_origami_crane_animation()
@@ -572,4 +654,11 @@ elif st.session_state["booking_step"] == 2:
 
   if st.button("← 続けて別の予約をする"):
     st.session_state["booking_step"] = 1
+    # 入力値をクリア
+    st.session_state["input_name"] = ""
+    st.session_state["input_email"] = ""
+    st.session_state["input_phone"] = ""
+    st.session_state["input_num_people"] = "1名"
+    st.session_state["input_source"] = "SNS（Instagram / X など）"
+    st.session_state["input_note"] = ""
     st.rerun()
