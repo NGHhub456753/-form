@@ -330,21 +330,16 @@ if st.session_state["booking_step"] == 1:
 　 内容：折り紙ランタン制作ワークショップ
 """)
 
-  dates_options = [
-      "8月24日 14:00〜（折り紙でお花づくり）",
-      "8月24日 18:00〜（折り紙でお花づくり）",
-      "8月25日 14:00〜（折り紙ランタン制作）",
-      "8月25日 18:00〜（折り紙ランタン制作）",
-  ]
-
-  selected_dates = st.multiselect(
-      "参加希望日時を選んでください（複数えらべます）*",
-      options=dates_options,
-  )
-
-  st.markdown("---")
-
   with st.form("booking_form"):
+    st.subheader("🗓️ 参加希望日時（複数えらべます）*")
+
+    # 💡 迷わず直感的に押せるチェックボックス方式
+    d1 = st.checkbox("8月24日 14:00〜（折り紙でお花づくり）")
+    d2 = st.checkbox("8月24日 18:00〜（折り紙でお花づくり）")
+    d3 = st.checkbox("8月25日 14:00〜（折り紙ランタン制作）")
+    d4 = st.checkbox("8月25日 18:00〜（折り紙ランタン制作）")
+
+    st.markdown("---")
     st.subheader("参加される方のお名前・ご連絡先")
 
     name = st.text_input("お名前（フルネーム）*", placeholder="例: 山田 太郎")
@@ -385,7 +380,7 @@ if st.session_state["booking_step"] == 1:
         ),
     )
 
-    # 💡 行頭スペースを削除してHTMLがそのままレンダリングされるよう修正
+    # 📌 高齢の方でも読みやすい段落分け・大きめ文字の注意事項カード
     notice_html = """<div class="notice-card">
 <div class="notice-title">📌 ご予約のキャンセル・注意事項</div>
 <div class="notice-section">
@@ -407,6 +402,17 @@ if st.session_state["booking_step"] == 1:
     submit_button = st.form_submit_button("予約を確定する")
 
   if submit_button:
+    # 選択された日時を配列にまとめる
+    selected_dates = []
+    if d1:
+      selected_dates.append("8月24日 14:00〜（折り紙でお花づくり）")
+    if d2:
+      selected_dates.append("8月24日 18:00〜（折り紙でお花づくり）")
+    if d3:
+      selected_dates.append("8月25日 14:00〜（折り紙ランタン制作）")
+    if d4:
+      selected_dates.append("8月25日 18:00〜（折り紙ランタン制作）")
+
     if not selected_dates:
       st.warning("⚠️ 参加希望日時を少なくとも1つ選択してください。")
     elif not name or not email:
