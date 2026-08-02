@@ -25,56 +25,63 @@ CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 # 🎨 アニメーション・デザイン専用ブロック
 # ==========================================
 def trigger_origami_crane_animation():
-  """画面左上に残骸が出ないよう完全隔離したシラサギ群飛翔アニメーション"""
-  js_code = """
+  """シラサギの群れ飛翔 ＋ 和風紙吹雪（コンフェッティ）の祝福アニメーション"""
+  js_code = f"""
     <script>
-    (function() {
+    (function() {{
         let doc = window.parent.document;
         
         let oldElem = doc.getElementById('crane-anim-layer');
-        if (oldElem) { oldElem.remove(); }
+        if (oldElem) {{ oldElem.remove(); }}
 
         let style = doc.createElement('style');
         style.textContent = `
-            /* SVGテンプレート定義の完全非表示化 */
-            .crane-svg-defs {
+            .crane-svg-defs {{
                 position: absolute !important;
                 width: 0 !important;
                 height: 0 !important;
                 overflow: hidden !important;
                 opacity: 0 !important;
                 pointer-events: none !important;
-            }
+            }}
 
-            /* 左下から右上への正確な飛翔軌道 */
-            @keyframes flyDiagonalCorrect {
-                0% {
+            /* シラサギの飛翔アニメーション */
+            @keyframes flyDiagonalCorrect {{
+                0% {{
                     transform: translate(-10vw, 85vh) scale(0.65) rotate(25deg);
                     opacity: 0;
-                }
-                15% {
-                    opacity: 1;
-                }
-                45% {
+                }}
+                15% {{ opacity: 1; }}
+                45% {{
                     transform: translate(35vw, 42vh) scale(0.95) rotate(22deg);
                     opacity: 1;
-                }
-                85% {
-                    opacity: 0.95;
-                }
-                100% {
+                }}
+                85% {{ opacity: 0.95; }}
+                100% {{
                     transform: translate(115vw, -20vh) scale(1.2) rotate(18deg);
                     opacity: 0;
-                }
-            }
+                }}
+            }}
 
-            /* 翼の自然な羽ばたき */
-            @keyframes wingFlapReal {
-                0%, 100% { transform: rotate(0deg) scaleY(1); }
-                50% { transform: rotate(-30deg) scaleY(0.55); }
-            }
+            @keyframes wingFlapReal {{
+                0%, 100% {{ transform: rotate(0deg) scaleY(1); }}
+                50% {{ transform: rotate(-30deg) scaleY(0.55); }}
+            }}
 
-            .crane-anim-container {
+            /* 和風紙吹雪（コンフェッティ）の落下アニメーション */
+            @keyframes confettiFall {{
+                0% {{
+                    transform: translateY(-50px) rotate(0deg) scale(1);
+                    opacity: 1;
+                }}
+                80% {{ opacity: 0.9; }}
+                100% {{
+                    transform: translateY(105vh) rotate(720deg) scale(0.6);
+                    opacity: 0;
+                }}
+            }}
+
+            .crane-anim-container {{
                 position: fixed !important;
                 top: 0 !important;
                 left: 0 !important;
@@ -83,21 +90,30 @@ def trigger_origami_crane_animation():
                 pointer-events: none !important;
                 z-index: 9999999 !important;
                 overflow: hidden !important;
-            }
+            }}
 
-            .egret-bird {
+            .egret-bird {{
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 95px;
                 height: 95px;
                 animation: flyDiagonalCorrect 3.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-            }
+            }}
 
-            .egret-wing-part {
+            .egret-wing-part {{
                 transform-origin: 35% 50%;
                 animation: wingFlapReal 0.22s infinite ease-in-out;
-            }
+            }}
+
+            .confetti-piece {{
+                position: absolute;
+                top: -20px;
+                width: 12px;
+                height: 14px;
+                opacity: 0;
+                animation: confettiFall 4.2s linear forwards;
+            }}
         `;
         doc.head.appendChild(style);
 
@@ -105,7 +121,6 @@ def trigger_origami_crane_animation():
         container.id = 'crane-anim-layer';
         container.className = 'crane-anim-container';
         
-        // 元となる折り紙シラサギのSVG定義（画面外に完全遮断）
         let svgShape = `
             <svg class="crane-svg-defs" aria-hidden="true">
                 <defs>
@@ -124,33 +139,44 @@ def trigger_origami_crane_animation():
             </svg>
         `;
 
-        // 群れの配置
+        // 10羽のシラサギ
         let birdsHTML = '';
         let delays = [0, 0.2, 0.4, 0.65, 0.85, 1.1, 1.3, 1.55, 1.8, 2.0];
         let offsets = [
-            {x: '-5vw', y: '5vh', s: 1.0},
-            {x: '-12vw', y: '12vh', s: 0.85},
-            {x: '-3vw', y: '20vh', s: 1.1},
-            {x: '-10vw', y: '28vh', s: 0.9},
-            {x: '-16vw', y: '18vh', s: 0.75},
-            {x: '-6vw', y: '8vh', s: 0.95},
-            {x: '-14vw', y: '24vh', s: 0.8},
-            {x: '-4vw', y: '32vh', s: 1.05},
-            {x: '-11vw', y: '15vh', s: 0.88},
-            {x: '-8vw', y: '22vh', s: 0.92}
+            {{x: '-5vw', y: '5vh', s: 1.0}},
+            {{x: '-12vw', y: '12vh', s: 0.85}},
+            {{x: '-3vw', y: '20vh', s: 1.1}},
+            {{x: '-10vw', y: '28vh', s: 0.9}},
+            {{x: '-16vw', y: '18vh', s: 0.75}},
+            {{x: '-6vw', y: '8vh', s: 0.95}},
+            {{x: '-14vw', y: '24vh', s: 0.8}},
+            {{x: '-4vw', y: '32vh', s: 1.05}},
+            {{x: '-11vw', y: '15vh', s: 0.88}},
+            {{x: '-8vw', y: '22vh', s: 0.92}}
         ];
 
-        for(let i = 0; i < delays.length; i++) {
-            birdsHTML += `<div class="egret-bird" style="margin-left: ${offsets[i].x}; margin-top: ${offsets[i].y}; animation-delay: ${delays[i]}s; transform: scale(${offsets[i].s});"><svg viewBox="0 0 100 100"><use href="#real-egret-shape"/></svg></div>`;
-        }
+        for(let i = 0; i < delays.length; i++) {{
+            birdsHTML += `<div class="egret-bird" style="margin-left: ${{offsets[i].x}}; margin-top: ${{offsets[i].y}}; animation-delay: ${{delays[i]}}s; transform: scale(${{offsets[i].s}});"><svg viewBox="0 0 100 100"><use href="#real-egret-shape"/></svg></div>`;
+        }}
 
-        container.innerHTML = svgShape + birdsHTML;
+        // 和風カラーの紙吹雪（折り紙風）を約35枚生成
+        let confettiHTML = '';
+        let colors = ['#FFD700', '#E63946', '#4A90E2', '#FFFFFF', '#F4A261', '#2A9D8F'];
+        for(let j = 0; j < 35; j++) {{
+            let left = Math.random() * 100;
+            let delay = Math.random() * 2.2;
+            let bg = colors[Math.floor(Math.random() * colors.length)];
+            let scale = 0.6 + Math.random() * 0.8;
+            confettiHTML += `<div class="confetti-piece" style="left: ${{left}}vw; animation-delay: ${{delay}}s; background-color: ${{bg}}; transform: scale(${{scale}}); clip-path: polygon(10% 0%, 100% 20%, 85% 100%, 0% 80%);"></div>`;
+        }}
+
+        container.innerHTML = svgShape + birdsHTML + confettiHTML;
         doc.body.appendChild(container);
 
-        setTimeout(() => {
+        setTimeout(() => {{
             if (container) container.remove();
-        }, 5800);
-    })();
+        }}, 6000);
+    }})();
     </script>
     """
   components.html(js_code, height=0, width=0)
@@ -294,8 +320,10 @@ if st.session_state["booking_step"] == 1:
     email = st.text_input(
         "メールアドレス*", placeholder="例: example@email.com"
     )
+
+    # 💡 改善点1：電話番号を「任意」に変更
     phone = st.text_input(
-        "電話番号*", placeholder="例: 09012345678（ハイフンなし）"
+        "電話番号（任意）", placeholder="例: 09012345678（ハイフンなし）"
     )
 
     num_people = st.selectbox(
@@ -339,8 +367,9 @@ if st.session_state["booking_step"] == 1:
   if submit_button:
     if not selected_dates:
       st.warning("⚠️ 参加希望日時を少なくとも1つ選択してください。")
-    elif not name or not email or not phone:
-      st.warning("⚠️ お名前、メールアドレス、電話番号は必須項目です。")
+    # 💡 電話番号必須チェックを解除（お名前とメールのみ必須）
+    elif not name or not email:
+      st.warning("⚠️ お名前とメールアドレスは必須項目です。")
     elif "@" not in email or "." not in email:
       st.warning("⚠️ 有効なメールアドレスの形式で入力してください。")
     elif not agree:
@@ -352,11 +381,12 @@ if st.session_state["booking_step"] == 1:
         ws = get_worksheet()
 
         dates_formatted = "\n".join(selected_dates)
+        phone_save = phone if phone else "未入力"
 
         ws.append_row([
             name,
             email,
-            phone,
+            phone_save,
             num_people,
             source,
             dates_formatted,
@@ -405,7 +435,7 @@ if st.session_state["booking_step"] == 1:
 # ------------------------------------------
 elif st.session_state["booking_step"] == 2:
 
-  # 画面左上に残骸が残らないよう完全防護したアニメーションを発火
+  # 豪華なシラサギ＆和風紙吹雪アニメーションを発火
   trigger_origami_crane_animation()
 
   st.success(
@@ -415,7 +445,7 @@ elif st.session_state["booking_step"] == 2:
 
   st.info(
       f"✉️ ご予約確認メールを **{st.session_state['complete_email']}**"
-      f" へ送信しました。ご質問等は {CONTACT_EMAIL} までお問い合わせください。"
+      f" へ送信しました。"
   )
 
   st.markdown("---")
@@ -426,6 +456,18 @@ elif st.session_state["booking_step"] == 2:
   st.write("**確定日時:**")
   for d in st.session_state.get("complete_dates_list", []):
     st.write(f"・ {d}")
+
+  st.markdown("---")
+
+  # 💡 改善点2：キャンセル方法の案内を分かりやすく記載
+  st.warning(f"""
+💡 **ご予約のキャンセルについて**
+ご都合が悪くなりキャンセルされる場合は、以下のキャンセル専用サイトから簡単にお手続きいただけます。
+
+👉 [**予約キャンセル専用サイトを開く**]({CANCEL_APP_URL})
+
+※お問い合わせ・ご質問は {CONTACT_EMAIL} までご連絡ください。
+""")
 
   st.markdown("---")
 
