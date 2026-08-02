@@ -224,7 +224,6 @@ def send_email(to_email, subject, body_html):
     msg["Reply-To"] = CONTACT_EMAIL
     msg["Subject"] = subject
 
-    # HTMLメールとして作成
     msg.attach(MIMEText(body_html, "html", "utf-8"))
 
     recipients = list({to_email, ADMIN_EMAIL, CONTACT_EMAIL})
@@ -260,76 +259,80 @@ if "input_source" not in st.session_state:
 if "input_note" not in st.session_state:
   st.session_state["input_note"] = ""
 
-# 共通CSSスタイル
+# 🎨 改良版CSSスタイル（青色の主張を抑えた見やすい配色）
 st.markdown(
     """<style>
 .header-container {
-    background-color: #f8f9fa;
+    background-color: #F8FAFC;
     padding: 18px 20px;
-    border-radius: 12px;
-    border-left: 6px solid #4A90E2;
+    border-radius: 10px;
+    border-left: 5px solid #475569;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 .main-title {
     font-size: 1.5rem !important;
     font-weight: 800;
-    color: #2C3E50;
+    color: #1E293B;
     margin: 0 0 8px 0;
     line-height: 1.3;
 }
 .sub-title {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: bold;
-    color: #4A90E2;
-    background: #EBF3FA;
+    color: #334155;
+    background: #E2E8F0;
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
+    padding: 3px 10px;
+    border-radius: 12px;
 }
 .desc-text {
-    font-size: 1.0rem;
-    color: #444;
-    margin-top: 12px;
-    line-height: 1.6;
+    font-size: 0.95rem;
+    color: #475569;
+    margin-top: 10px;
+    line-height: 1.5;
 }
+
+/* 会場見出し：落ち着いたグレー・モカ系の配色 */
 .venue-header {
     background-color: #F1F5F9;
-    border-left: 5px solid #0284C7;
-    padding: 8px 12px;
-    border-radius: 4px;
+    border-left: 4px solid #64748B;
+    padding: 10px 14px;
+    border-radius: 6px;
     font-weight: bold;
     font-size: 1.05rem;
     color: #0F172A;
     margin-top: 15px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
+
+/* 注意事項カード：ソフトでナチュラルな配色 */
 .notice-card {
-    background-color: #F8FAFC;
-    border: 2px solid #CBD5E1;
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin: 20px 0 15px 0;
-    line-height: 1.7;
+    background-color: #FAF8F5;
+    border: 1px solid #E5E0D8;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 22px 0 15px 0;
+    line-height: 1.6;
 }
 .notice-title {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: bold;
-    color: #1E293B;
-    margin-bottom: 12px;
-    border-bottom: 1px dashed #94A3B8;
+    color: #4338CA;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed #CBD5E1;
     padding-bottom: 6px;
 }
 .notice-section {
-    margin-bottom: 12px;
-    font-size: 1.0rem;
+    margin-bottom: 10px;
+    font-size: 0.92rem;
     color: #334155;
 }
 .notice-section-title {
     font-weight: bold;
-    color: #0F172A;
+    color: #1E293B;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 </style>
 """,
@@ -450,9 +453,12 @@ elif st.session_state["booking_step"] == 2:
       unsafe_allow_html=True,
   )
 
-  st.info(
-      f"👤 **ご予約者情報**: {st.session_state['input_name']} 様"
-      f"（{st.session_state['input_email']}）"
+  # ユーザー情報確認表示（目立ちすぎないグレー背景）
+  st.markdown(
+      f"""<div style="background-color:#F1F5F9; padding:10px 14px; border-radius:6px; color:#334155; font-size:0.95rem; margin-bottom:15px;">
+        👤 <b>お申し込み者:</b> {st.session_state['input_name']} 様（{st.session_state['input_email']}）
+      </div>""",
+      unsafe_allow_html=True,
   )
 
   with st.form("date_agree_form"):
@@ -460,7 +466,7 @@ elif st.session_state["booking_step"] == 2:
 
     # 📍 会場 1
     st.markdown(
-        """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><small style="font-weight:normal; color:#475569;">内容：折り紙でお花づくり</small></div>""",
+        """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：折り紙でお花づくり</span></div>""",
         unsafe_allow_html=True,
     )
     d1 = st.checkbox("8月24日（月）14:00〜")
@@ -470,13 +476,13 @@ elif st.session_state["booking_step"] == 2:
 
     # 📍 会場 2
     st.markdown(
-        """<div class="venue-header">📍 スターバックス FKD店<br><small style="font-weight:normal; color:#475569;">内容：折り紙ランタン制作</small></div>""",
+        """<div class="venue-header">📍 スターバックス FKD店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：折り紙ランタン制作</span></div>""",
         unsafe_allow_html=True,
     )
     d3 = st.checkbox("8月25日（火）14:00〜")
     d4 = st.checkbox("8月25日（火）18:00〜")
 
-    # 📌 高齢の方でも読みやすい注意事項カード
+    # 📌 注意事項カード（見やすい配色に調整）
     notice_html = """<div class="notice-card">
 <div class="notice-title">📌 ご予約のキャンセル・注意事項</div>
 <div class="notice-section">
