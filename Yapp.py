@@ -318,26 +318,22 @@ if st.session_state["booking_step"] == 1:
       unsafe_allow_html=True,
   )
 
-  st.info("""
-📍 **開催日程・場所・内容**
-
-・ **8月24日（14:00〜 / 18:00〜）**
-　 場所：スターバックス インターパークスタジアム店
-　 内容：折り紙でお花づくりワークショップ
-
-・ **8月25日（14:00〜 / 18:00〜）**
-　 場所：スターバックス FKD店
-　 内容：折り紙ランタン制作ワークショップ
-""")
-
   with st.form("booking_form"):
-    st.subheader("🗓️ 参加希望日時（複数えらべます）*")
+    st.subheader("🗓️ 参加希望日時・会場（複数選べます）*")
 
-    # 💡 迷わず直感的に押せるチェックボックス方式
-    d1 = st.checkbox("8月24日 14:00〜（折り紙でお花づくり）")
-    d2 = st.checkbox("8月24日 18:00〜（折り紙でお花づくり）")
-    d3 = st.checkbox("8月25日 14:00〜（折り紙ランタン制作）")
-    d4 = st.checkbox("8月25日 18:00〜（折り紙ランタン制作）")
+    # 💡 日時＋場所＋内容を一発でわかるように記載
+    d1 = st.checkbox(
+        "8月24日 14:00〜【スターバックス インターパークスタジアム店】折り紙でお花づくり"
+    )
+    d2 = st.checkbox(
+        "8月24日 18:00〜【スターバックス インターパークスタジアム店】折り紙でお花づくり"
+    )
+    d3 = st.checkbox(
+        "8月25日 14:00〜【スターバックス FKD店】折り紙ランタン制作"
+    )
+    d4 = st.checkbox(
+        "8月25日 18:00〜【スターバックス FKD店】折り紙ランタン制作"
+    )
 
     st.markdown("---")
     st.subheader("参加される方のお名前・ご連絡先")
@@ -380,7 +376,7 @@ if st.session_state["booking_step"] == 1:
         ),
     )
 
-    # 📌 高齢の方でも読みやすい段落分け・大きめ文字の注意事項カード
+    # 📌 高齢の方でも読みやすい注意事項カード
     notice_html = """<div class="notice-card">
 <div class="notice-title">📌 ご予約のキャンセル・注意事項</div>
 <div class="notice-section">
@@ -402,16 +398,24 @@ if st.session_state["booking_step"] == 1:
     submit_button = st.form_submit_button("予約を確定する")
 
   if submit_button:
-    # 選択された日時を配列にまとめる
+    # 選択された日時・会場を配列にまとめる
     selected_dates = []
     if d1:
-      selected_dates.append("8月24日 14:00〜（折り紙でお花づくり）")
+      selected_dates.append(
+          "8月24日 14:00〜【スターバックス インターパークスタジアム店】折り紙でお花づくり"
+      )
     if d2:
-      selected_dates.append("8月24日 18:00〜（折り紙でお花づくり）")
+      selected_dates.append(
+          "8月24日 18:00〜【スターバックス インターパークスタジアム店】折り紙でお花づくり"
+      )
     if d3:
-      selected_dates.append("8月25日 14:00〜（折り紙ランタン制作）")
+      selected_dates.append(
+          "8月25日 14:00〜【スターバックス FKD店】折り紙ランタン制作"
+      )
     if d4:
-      selected_dates.append("8月25日 18:00〜（折り紙ランタン制作）")
+      selected_dates.append(
+          "8月25日 18:00〜【スターバックス FKD店】折り紙ランタン制作"
+      )
 
     if not selected_dates:
       st.warning("⚠️ 参加希望日時を少なくとも1つ選択してください。")
@@ -448,7 +452,7 @@ if st.session_state["booking_step"] == 1:
 以下の内容でご予約を承りました。
 
 ----------------------------------------
-■ ご予約日時・内容：
+■ ご予約日時・場所・内容：
 {dates_formatted}
 
 ■ ご予約人数（各回）：{num_people}
@@ -500,7 +504,7 @@ elif st.session_state["booking_step"] == 2:
   st.write(f"**お名前:** {st.session_state['complete_name']} 様")
   st.write(f"**参加人数:** {st.session_state['complete_num_people']}")
 
-  st.write("**確定日時:**")
+  st.write("**確定日時・場所:**")
   for d in st.session_state.get("complete_dates_list", []):
     st.write(f"・ {d}")
 
