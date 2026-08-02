@@ -100,15 +100,17 @@ def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
         [f"・ {format_date_with_map_link(d)}" for d in cancelled_dates]
     )
 
-    # 残っている予約がある場合の案内ブロック
+    # 残っている予約がある場合のみ「引き続きご予約中の日時」ブロックを生成（日時を明記）
     remaining_block_html = ""
     if remaining_dates:
+      remaining_html = "<br>".join(
+          [f"・ {format_date_with_map_link(d)}" for d in remaining_dates]
+      )
       remaining_block_html = f"""
     <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
-        <h3 style="margin-top:0; color: #1e40af; border-bottom: 2px solid #60a5fa; padding-bottom: 5px;">■ 引き続きご予約中の枠について</h3>
-        <p style="font-size: 14px; line-height: 1.8; color: #1e3a8a; margin-bottom: 0;">
-            一部枠のキャンセルを受け付けいたしました。<br>
-            引き続きご予約中の日時・会場の詳細につきましては、別途送信しております「ご予約完了メール」をご確認ください。
+        <h3 style="margin-top:0; color: #1e40af; border-bottom: 2px solid #60a5fa; padding-bottom: 5px;">■ 引き続きご予約中の日時</h3>
+        <p style="font-size: 15px; line-height: 1.8; color: #1e3a8a; margin-bottom: 0;">
+            {remaining_html}
         </p>
     </div>
     """
@@ -322,7 +324,7 @@ elif st.session_state["cancel_step"] == 2:
 
 
 # ==========================================
-# 🚀 ページ 3: キャンセル完了画面
+# 🚀 ページ 3: キャンセル完了画面（Web画面）
 # ==========================================
 elif st.session_state["cancel_step"] == 3:
 
@@ -338,7 +340,7 @@ elif st.session_state["cancel_step"] == 3:
       st.write("")
       st.info(
           "✉️ **引き続きご予約中の日時・会場について**\n\n"
-          "他にお申し込み中の日時や会場の詳細につきましては、別途お送りしている案内メールにてご確認いただけます。"
+          "他にお申し込み中の日時や会場の詳細につきましては、別途お送りしている完了メールにてご確認いただけます。"
       )
 
   st.write("")
