@@ -164,13 +164,20 @@ def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
 st.markdown(
     """
 <style>
-/* ⚙️ Manage app ボタンや不要なフッター/ヘッダーを非表示 */
+/* ⚙️ Manage app ボタンや不要なフッター/ヘッダーを完全に非表示 */
 [data-testid="stStatusWidget"],
+[data-testid="stViewerBadge"],
+[data-testid="manage-app-button"],
+.stAppViewerToolBar,
 #MainMenu,
 footer,
 header {
-    visibility: hidden !important;
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    pointer-events: none !important;
 }
 
 .cancel-header {
