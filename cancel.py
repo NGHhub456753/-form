@@ -117,21 +117,6 @@ st.markdown(
     color: #991B1B;
     margin: 0;
 }
-.step-card {
-    background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    margin-bottom: 20px;
-}
-.item-box {
-    background-color: #F8FAFC;
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-bottom: 12px;
-}
 </style>
 <div class="cancel-header">
     <div class="cancel-title">❌ ご予約キャンセル手続き</div>
@@ -140,7 +125,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ステップ管理
+# ステップ管理（画面切り替え用）
 if "cancel_step" not in st.session_state:
   st.session_state["cancel_step"] = 1
 
@@ -220,14 +205,12 @@ elif st.session_state["cancel_step"] == 2:
   with st.form("cancel_confirm_form"):
     st.write("---")
 
-    # チェックボックスをカード風に並べて見やすく配置
+    # st.container(border=True) で各選択肢を独立した綺麗なカード枠に収める
     for idx, date_str in enumerate(st.session_state["target_dates"]):
-      st.markdown('<div class="item-box">', unsafe_allow_html=True)
-      cb = st.checkbox(f"🗓️  {date_str}", key=f"cb_{idx}")
-      st.markdown("</div>", unsafe_allow_html=True)
-
-      if cb:
-        cancelled_selected.append(date_str)
+      with st.container(border=True):
+        cb = st.checkbox(f"🗓️  {date_str}", key=f"cb_{idx}")
+        if cb:
+          cancelled_selected.append(date_str)
 
     st.write("")
     cancel_submit = st.form_submit_button(
