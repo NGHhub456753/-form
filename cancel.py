@@ -98,6 +98,19 @@ def send_cancel_email(to_email, name, cancelled_dates):
     return False
 
 
+# 日時テキストを短く整形する関数（表示用）
+def shorten_date_str(text):
+  # 店名の短縮
+  text = text.replace("スターバックス インターパークスタジアム店", "スタバ ステージ店")
+  text = text.replace("スターバックスインターパークスタジアム店", "スタバ ステージ店")
+  text = text.replace("スターバックス FKD店", "スタバ FKD店")
+  text = text.replace("スターバックスFKD店", "スタバ FKD店")
+
+  # 内容の短縮
+  text = text.replace("折り紙でお花づくり", "お花づくり")
+  return text
+
+
 # ==========================================
 # 🎨 見栄え用カスタムCSS
 # ==========================================
@@ -125,7 +138,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ステップ管理（画面切り替え用）
+# ステップ管理
 if "cancel_step" not in st.session_state:
   st.session_state["cancel_step"] = 1
 
@@ -179,7 +192,6 @@ if st.session_state["cancel_step"] == 1:
           st.session_state["target_email"] = target_row[1]
           st.session_state["target_dates"] = dates_list
 
-          # 検索成功したらページ2（日時選択）へ移動
           st.session_state["cancel_step"] = 2
           st.rerun()
 
@@ -205,10 +217,12 @@ elif st.session_state["cancel_step"] == 2:
   with st.form("cancel_confirm_form"):
     st.write("---")
 
-    # st.container(border=True) で各選択肢を独立した綺麗なカード枠に収める
+    # st.container(border=True) で選択肢をきれいなカード枠に配置
     for idx, date_str in enumerate(st.session_state["target_dates"]):
+      short_text = shorten_date_str(date_str)  # 表示用にテキストを短縮
+
       with st.container(border=True):
-        cb = st.checkbox(f"🗓️  {date_str}", key=f"cb_{idx}")
+        cb = st.checkbox(f"🗓️  {short_text}", key=f"cb_{idx}")
         if cb:
           cancelled_selected.append(date_str)
 
@@ -271,7 +285,7 @@ elif st.session_state["cancel_step"] == 3:
 
   st.write("### 📄 キャンセル内容")
   for d in st.session_state.get("cancelled_items_completed", []):
-    st.write(f"・ {d}")
+    st.write(f"・ {shorten_date_str(d)}")
 
   st.info(
       f"✉️ **{st.session_state['target_email']}**"
