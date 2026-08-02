@@ -245,77 +245,76 @@ if "booking_step" not in st.session_state:
 if st.session_state["booking_step"] == 1:
 
   st.markdown(
-      """
-        <style>
-        .header-container {
-            background-color: #f8f9fa;
-            padding: 18px 20px;
-            border-radius: 12px;
-            border-left: 6px solid #4A90E2;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        }
-        .main-title {
-            font-size: 1.5rem !important;
-            font-weight: 800;
-            color: #2C3E50;
-            margin: 0 0 8px 0;
-            line-height: 1.3;
-        }
-        .sub-title {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: #4A90E2;
-            background: #EBF3FA;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-        .desc-text {
-            font-size: 1.0rem;
-            color: #444;
-            margin-top: 12px;
-            line-height: 1.6;
-        }
+      """<style>
+.header-container {
+    background-color: #f8f9fa;
+    padding: 18px 20px;
+    border-radius: 12px;
+    border-left: 6px solid #4A90E2;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+.main-title {
+    font-size: 1.5rem !important;
+    font-weight: 800;
+    color: #2C3E50;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+}
+.sub-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #4A90E2;
+    background: #EBF3FA;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+.desc-text {
+    font-size: 1.0rem;
+    color: #444;
+    margin-top: 12px;
+    line-height: 1.6;
+}
 
-        /* 📌 注意事項・キャンセル方法の読みやすい枠 */
-        .notice-card {
-            background-color: #F8FAFC;
-            border: 2px solid #CBD5E1;
-            border-radius: 10px;
-            padding: 18px 20px;
-            margin: 20px 0 15px 0;
-            line-height: 1.7;
-        }
-        .notice-title {
-            font-size: 1.15rem;
-            font-weight: bold;
-            color: #1E293B;
-            margin-bottom: 12px;
-            border-bottom: 1px dashed #94A3B8;
-            padding-bottom: 6px;
-        }
-        .notice-section {
-            margin-bottom: 12px;
-            font-size: 1.0rem;
-            color: #334155;
-        }
-        .notice-section-title {
-            font-weight: bold;
-            color: #0F172A;
-            display: block;
-            margin-bottom: 4px;
-        }
-        </style>
-        
-        <div class="header-container">
-            <div class="main-title">折り紙体験ワークショップ</div>
-            <div class="sub-title">📝 参加予約フォーム</div>
-            <div class="desc-text">
-                ご希望の日時を選び、お名前とご連絡先を入力して「予約を確定する」ボタンを押してください。
-            </div>
-        </div>
-    """,
+/* 📌 注意事項・キャンセル方法の読みやすい枠 */
+.notice-card {
+    background-color: #F8FAFC;
+    border: 2px solid #CBD5E1;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 20px 0 15px 0;
+    line-height: 1.7;
+}
+.notice-title {
+    font-size: 1.15rem;
+    font-weight: bold;
+    color: #1E293B;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed #94A3B8;
+    padding-bottom: 6px;
+}
+.notice-section {
+    margin-bottom: 12px;
+    font-size: 1.0rem;
+    color: #334155;
+}
+.notice-section-title {
+    font-weight: bold;
+    color: #0F172A;
+    display: block;
+    margin-bottom: 4px;
+}
+</style>
+
+<div class="header-container">
+    <div class="main-title">折り紙体験ワークショップ</div>
+    <div class="sub-title">📝 参加予約フォーム</div>
+    <div class="desc-text">
+        ご希望の日時を選び、お名前とご連絡先を入力して「予約を確定する」ボタンを押してください。
+    </div>
+</div>
+""",
       unsafe_allow_html=True,
   )
 
@@ -386,25 +385,20 @@ if st.session_state["booking_step"] == 1:
         ),
     )
 
-    # 💡 高齢の方でも読みやすい段落分け・大きめ文字の注意事項カード
-    st.markdown(
-        """
-    <div class="notice-card">
-        <div class="notice-title">📌 ご予約のキャンセル・注意事項</div>
-        
-        <div class="notice-section">
-            <span class="notice-section-title">【キャンセルの方法】</span>
-            万が一ご都合が悪くなった場合は、予約完了後にお送りする<b>「確認メール」の中にキャンセル用リンク</b>がございます。<br>そちらのリンクからいつでもお手続きいただけます。
-        </div>
-        
-        <div class="notice-section" style="margin-bottom: 0;">
-            <span class="notice-section-title">【写真・動画の撮影について】</span>
-            当日はイベントの様子を撮影し、広報やSNS等に掲載させていただく場合がございます。あらかじめご了承ください。
-        </div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    # 💡 行頭スペースを削除してHTMLがそのままレンダリングされるよう修正
+    notice_html = """<div class="notice-card">
+<div class="notice-title">📌 ご予約のキャンセル・注意事項</div>
+<div class="notice-section">
+<span class="notice-section-title">【キャンセルの方法】</span>
+万が一ご都合が悪くなった場合は、予約完了後にお送りする<b>「確認メール」の中にキャンセル用リンク</b>がございます。<br>そちらのリンクからいつでもお手続きいただけます。
+</div>
+<div class="notice-section" style="margin-bottom: 0;">
+<span class="notice-section-title">【写真・動画の撮影について】</span>
+当日はイベントの様子を撮影し、広報やSNS等に掲載させていただく場合がございます。あらかじめご了承ください。
+</div>
+</div>"""
+
+    st.markdown(notice_html, unsafe_allow_html=True)
 
     agree = st.checkbox(
         "【同意確認】キャンセル方法および当日の撮影について確認し、同意の上で予約します。*"
