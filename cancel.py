@@ -10,7 +10,9 @@ import streamlit as st
 # ⚙️ 基本設定 & 定数
 # ==========================================
 st.set_page_config(
-    page_title="折り紙体験ワークショップ 予約キャンセル", page_icon="❌"
+    page_title="折り紙体験ワークショップ 予約キャンセル",
+    page_icon="❌",
+    layout="centered",
 )
 
 SPREADSHEET_NAME = "イベント予約一覧"
@@ -97,25 +99,40 @@ def send_cancel_email(to_email, name, cancelled_dates):
 
 
 # ==========================================
-# 🚀 アプリメイン処理
+# 🎨 見栄え用カスタムCSS
 # ==========================================
 st.markdown(
-    """<style>
+    """
+<style>
 .cancel-header {
     background-color: #FEF2F2;
-    padding: 18px 20px;
+    padding: 16px 20px;
     border-radius: 12px;
     border-left: 6px solid #EF4444;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 .cancel-title {
-    font-size: 1.4rem !important;
+    font-size: 1.35rem !important;
     font-weight: 800;
     color: #991B1B;
     margin: 0;
 }
+.step-card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+.item-box {
+    background-color: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+}
 </style>
-
 <div class="cancel-header">
     <div class="cancel-title">❌ ご予約キャンセル手続き</div>
 </div>
@@ -123,81 +140,99 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if "user_found" not in st.session_state:
-  st.session_state["user_found"] = False
+# ステップ管理
+if "cancel_step" not in st.session_state:
+  st.session_state["cancel_step"] = 1
 
-# ------------------------------------------
-# ステップ 1: メールアドレス検索
-# ------------------------------------------
-with st.form("search_form"):
-  st.subheader("🔍 ご予約の確認")
-  search_email = st.text_input(
-      "ご予約時のメールアドレスを入力してください",
-      placeholder="例: example@email.com",
-  )
-  search_btn = st.form_submit_button("予約を検索する")
 
-if search_btn:
-  if not search_email:
-    st.warning("⚠️ メールアドレスを入力してください。")
-  else:
-    try:
-      ws = get_worksheet()
-      all_records = ws.get_all_values()
+# ==========================================
+# 🚀 ページ 1: メールアドレス検索画面
+# ==========================================
+if st.session_state["cancel_step"] == 1:
 
-      # 予約データの検索
-      found_rows = []
-      for idx, row in enumerate(all_records[1:], start=2):
-        if len(row) >= 8:
-          r_email = row[1].strip()
-          r_status = row[7].strip()
-          if (
-              r_email.lower() == search_email.strip().lower()
-              and r_status != "キャンセル"
-          ):
-            found_rows.append((idx, row))
-
-      if not found_rows:
-        st.error(
-            "❌ 該当するご予約が見つかりませんでした。メールアドレスをご確認ください。"
-        )
-        st.session_state["user_found"] = False
-      else:
-        target_row_idx, target_row = found_rows[-1]
-        raw_dates = target_row[5].split("\n")
-        dates_list = [d.strip() for d in raw_dates if d.strip()]
-
-        st.session_state["user_found"] = True
-        st.session_state["target_row_idx"] = target_row_idx
-        st.session_state["target_name"] = target_row[0]
-        st.session_state["target_email"] = target_row[1]
-        st.session_state["target_dates"] = dates_list
-
-    except Exception as e:
-      st.error(f"⚠️ データ取得エラーが発生しました: {e}")
-
-# ------------------------------------------
-# ステップ 2: チェックボックス選択式でキャンセル実行
-# ------------------------------------------
-if st.session_state.get("user_found", False):
-  st.markdown("---")
-  st.subheader("📋 キャンセルする日時の選択")
+  st.markdown("### 🔍 ご予約の検索")
   st.write(
-      f"**{st.session_state['target_name']} 様** のご予約が見つかりました。"
+      "予約時に入力した**メールアドレス**を入力して「検索する」を押してください。"
   )
-  st.info("キャンセルしたい日時にチェックを入れて「選択した日時をキャンセルする」を押してください。")
+
+  with st.form("search_form"):
+    search_email = st.text_input(
+        "メールアドレス", placeholder="例: example@email.com"
+    )
+    search_btn = st.form_submit_button("予約を検索する", use_container_width=True)
+
+  if search_btn:
+    if not search_email:
+      st.warning("⚠️ メールアドレスを入力してください。")
+    else:
+      try:
+        ws = get_worksheet()
+        all_records = ws.get_all_values()
+
+        found_rows = []
+        for idx, row in enumerate(all_records[1:], start=2):
+          if len(row) >= 8:
+            r_email = row[1].strip()
+            r_status = row[7].strip()
+            if (
+                r_email.lower() == search_email.strip().lower()
+                and r_status != "キャンセル"
+            ):
+              found_rows.append((idx, row))
+
+        if not found_rows:
+          st.error(
+              "❌ 該当するご予約が見つかりませんでした。メールアドレスをご確認ください。"
+          )
+        else:
+          target_row_idx, target_row = found_rows[-1]
+          raw_dates = target_row[5].split("\n")
+          dates_list = [d.strip() for d in raw_dates if d.strip()]
+
+          st.session_state["target_row_idx"] = target_row_idx
+          st.session_state["target_name"] = target_row[0]
+          st.session_state["target_email"] = target_row[1]
+          st.session_state["target_dates"] = dates_list
+
+          # 検索成功したらページ2（日時選択）へ移動
+          st.session_state["cancel_step"] = 2
+          st.rerun()
+
+      except Exception as e:
+        st.error(f"⚠️ データ取得エラーが発生しました: {e}")
+
+
+# ==========================================
+# 🚀 ページ 2: 日時選択 ＆ キャンセル実行画面
+# ==========================================
+elif st.session_state["cancel_step"] == 2:
+
+  st.markdown(
+      f"### 📋 キャンセルする日時の選択\n**{st.session_state['target_name']} 様**"
+      " のご予約情報"
+  )
+  st.info(
+      "キャンセルしたい日時にチェックを入れて「選択した日時をキャンセルする」を押してください。（複数選択可）"
+  )
 
   cancelled_selected = []
 
   with st.form("cancel_confirm_form"):
-    # 各日時をチェックボックスで1つずつ並べる
+    st.write("---")
+
+    # チェックボックスをカード風に並べて見やすく配置
     for idx, date_str in enumerate(st.session_state["target_dates"]):
-      cb = st.checkbox(f"🗓️ {date_str}", key=f"cb_{idx}")
+      st.markdown('<div class="item-box">', unsafe_allow_html=True)
+      cb = st.checkbox(f"🗓️  {date_str}", key=f"cb_{idx}")
+      st.markdown("</div>", unsafe_allow_html=True)
+
       if cb:
         cancelled_selected.append(date_str)
 
     st.write("")
-    cancel_submit = st.form_submit_button("選択した日時をキャンセルする")
+    cancel_submit = st.form_submit_button(
+        "選択した日時をキャンセルする", use_container_width=True
+    )
 
   if cancel_submit:
     if not cancelled_selected:
@@ -207,7 +242,7 @@ if st.session_state.get("user_found", False):
         ws = get_worksheet()
         row_idx = st.session_state["target_row_idx"]
 
-        # 残る予約日時を計算
+        # 残る予約日時を算出
         remaining_dates = [
             d
             for d in st.session_state["target_dates"]
@@ -215,24 +250,52 @@ if st.session_state.get("user_found", False):
         ]
 
         if not remaining_dates:
-          # 全件キャンセルの場合
+          # 全件キャンセル
           ws.update_cell(row_idx, 6, "")
           ws.update_cell(row_idx, 8, "キャンセル")
         else:
-          # 一部キャンセルの場合（残りの日時のみ保持）
+          # 一部キャンセル（残った日時だけスプレッドシートを上書き）
           updated_dates_str = "\n".join(remaining_dates)
           ws.update_cell(row_idx, 6, updated_dates_str)
 
-        # キャンセルメール送信
+        # キャンセルメールを送信
         send_cancel_email(
             st.session_state["target_email"],
             st.session_state["target_name"],
             cancelled_selected,
         )
 
-        st.success("✅ ご予約のキャンセル手続きが完了いたしました。")
-        st.session_state["user_found"] = False
+        st.session_state["cancelled_items_completed"] = cancelled_selected
+        st.session_state["cancel_step"] = 3
         st.cache_resource.clear()
+        st.rerun()
 
       except Exception as e:
         st.error(f"⚠️ キャンセル処理中にエラーが発生しました: {e}")
+
+  st.write("")
+  if st.button("← 別のメールアドレスでやり直す"):
+    st.session_state["cancel_step"] = 1
+    st.rerun()
+
+
+# ==========================================
+# 🚀 ページ 3: キャンセル完了画面
+# ==========================================
+elif st.session_state["cancel_step"] == 3:
+
+  st.success("✅ ご予約のキャンセル手続きが完了いたしました。")
+
+  st.write("### 📄 キャンセル内容")
+  for d in st.session_state.get("cancelled_items_completed", []):
+    st.write(f"・ {d}")
+
+  st.info(
+      f"✉️ **{st.session_state['target_email']}**"
+      " へキャンセル完了メールを送信いたしました。"
+  )
+
+  st.write("")
+  if st.button("トップ画面に戻る"):
+    st.session_state["cancel_step"] = 1
+    st.rerun()
