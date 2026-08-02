@@ -21,7 +21,7 @@ CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "aonisai0111@gmail.com"
 CANCEL_APP_URL = "https://djks33sfzskwjzeam4mbcr.streamlit.app/"
 
-# 開催日時 & 店舗リスト（曜日を月・火に修正）
+# 開催日時 & 店舗リスト（曜日を「月」「火」に修正）
 EVENT_SCHEDULES = [
     {
         "date": "8月24日（月）18:00〜",
@@ -78,7 +78,7 @@ def send_reservation_email(to_email, name, selected_dates, num_people):
     # 日時リストのHTML化
     dates_html = "<br>".join([f"・ {d}" for d in selected_dates])
 
-    # Gmail等の自動折りたたみ（引用文扱い）を防止するための動的ユニークID
+    # Gmail等の自動折りたたみ（...表記）を防止するための動的ユニークID
     unique_ref = str(uuid.uuid4())[:8]
 
     body_html = f"""
@@ -192,7 +192,6 @@ if st.session_state["reserve_step"] == 1:
 
     selected_schedules = []
 
-    # 選択肢を綺麗にカード枠で包んで表示
     for idx, item in enumerate(EVENT_SCHEDULES):
       short_label = f"{item['date']} {item['place']}（{item['title']}）"
       with st.container(border=True):
