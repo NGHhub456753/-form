@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import uuid
 
 from google.oauth2.service_account import Credentials
 import gspread
@@ -46,7 +47,26 @@ def get_worksheet():
   return sheet.sheet1
 
 
-def send_cancel_email(to_email, name, cancelled_dates):
+# 日時テキストを短く＆正しい曜日に整形する関数
+def shorten_date_str(text):
+  # 曜日の修正
+  text = text.replace("8月24日（土）", "8月24日（月）")
+  text = text.replace("8月24日(土)", "8月24日（月）")
+  text = text.replace("8月25日（日）", "8月25日（火）")
+  text = text.replace("8月25日(日)", "8月25日（火）")
+
+  # 店名の短縮
+  text = text.replace("スターバックス インターパークスタジアム店", "スタバ ステージ店")
+  text = text.replace("スターバックスインターパークスタジアム店", "スタバ ステージ店")
+  text = text.replace("スターバックス FKD店", "スタバ FKD店")
+  text = text.replace("スターバックスFKD店", "スタバ FKD店")
+
+  # 内容の短縮
+  text = text.replace("折り紙でお花づくり", "お花づくり")
+  return text
+
+
+def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
   try:
     sender_email = st.secrets["smtp"]["email"]
     sender_password = st.secrets["smtp"]["password"]
@@ -57,7 +77,28 @@ def send_cancel_email(to_email, name, cancelled_dates):
     msg["Reply-To"] = CONTACT_EMAIL
     msg["Subject"] = "【キャンセル受付】折り紙体験ワークショップの予約キャンセル"
 
-    dates_html = "<br>".join([f"・ {d}" for d in cancelled_dates])
+    # キャンセルした日時のリスト（整形済み）
+    cancelled_html = "<br>".join(
+        [f"・ {shorten_date_str(d)}" for d in cancelled_dates]
+    )
+
+    # 残っている予約日時のHTMLブロック作成（ある場合のみ）
+    remaining_block_html = ""
+    if remaining_dates:
+      remaining_html = "<br>".join(
+          [f"・ {shorten_date_str(d)}" for d in remaining_dates]
+      )
+      remaining_block_html = f"""
+    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <h3 style="margin-top:0; color: #1e40af; border-bottom: 2px solid #60a5fa; padding-bottom: 5px;">■ 引き続きご予約中の日時</h3>
+        <p style="font-size: 15px; line-height: 1.8; color: #1e3a8a; margin-bottom: 0;">
+            {remaining_html}
+        </p>
+    </div>
+    """
+
+    # Gmail等の自動折りたたみ防止ID
+    unique_ref = str(uuid.uuid4())[:8]
 
     body_html = f"""
 <!DOCTYPE html>
@@ -68,18 +109,25 @@ def send_cancel_email(to_email, name, cancelled_dates):
     
     <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 20px 0;">
         <h3 style="margin-top:0; color: #991b1b; border-bottom: 2px solid #f87171; padding-bottom: 5px;">■ キャンセルされた日時</h3>
-        <p style="font-size: 15px; line-height: 1.8; color: #7f1d1d;">
-            {dates_html}
+        <p style="font-size: 15px; line-height: 1.8; color: #7f1d1d; margin-bottom: 0;">
+            {cancelled_html}
         </p>
     </div>
 
-    <p>またのご参加を心よりお待ちしております。</p>
+    {remaining_block_html}
+
+    <p style="margin-top: 25px;">当日のご参加を心よりお待ちしております。</p>
     
     <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 25px 0;">
     <p style="font-size: 13px; color: #64748b;">
         ご不明な点がございましたら以下までご連絡ください。<br>
         お問い合わせ先：<a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a>
     </p>
+
+    <!-- Gmailの自動折りたたみ防止用ダミーID -->
+    <div style="display:none !important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; font-size:0px;">
+        Ref-ID: {unique_ref}
+    </div>
 </body>
 </html>
 """
@@ -96,19 +144,6 @@ def send_cancel_email(to_email, name, cancelled_dates):
   except Exception as e:
     st.warning(f"⚠️ メール送信に失敗しました: {e}")
     return False
-
-
-# 日時テキストを短く整形する関数（表示用）
-def shorten_date_str(text):
-  # 店名の短縮
-  text = text.replace("スターバックス インターパークスタジアム店", "スタバ ステージ店")
-  text = text.replace("スターバックスインターパークスタジアム店", "スタバ ステージ店")
-  text = text.replace("スターバックス FKD店", "スタバ FKD店")
-  text = text.replace("スターバックスFKD店", "スタバ FKD店")
-
-  # 内容の短縮
-  text = text.replace("折り紙でお花づくり", "お花づくり")
-  return text
 
 
 # ==========================================
@@ -217,9 +252,8 @@ elif st.session_state["cancel_step"] == 2:
   with st.form("cancel_confirm_form"):
     st.write("---")
 
-    # st.container(border=True) で選択肢をきれいなカード枠に配置
     for idx, date_str in enumerate(st.session_state["target_dates"]):
-      short_text = shorten_date_str(date_str)  # 表示用にテキストを短縮
+      short_text = shorten_date_str(date_str)
 
       with st.container(border=True):
         cb = st.checkbox(f"🗓️  {short_text}", key=f"cb_{idx}")
@@ -239,7 +273,7 @@ elif st.session_state["cancel_step"] == 2:
         ws = get_worksheet()
         row_idx = st.session_state["target_row_idx"]
 
-        # 残る予約日時を算出
+        # 残る予約日時を計算
         remaining_dates = [
             d
             for d in st.session_state["target_dates"]
@@ -247,22 +281,24 @@ elif st.session_state["cancel_step"] == 2:
         ]
 
         if not remaining_dates:
-          # 全件キャンセル
+          # 全件キャンセルの場合
           ws.update_cell(row_idx, 6, "")
           ws.update_cell(row_idx, 8, "キャンセル")
         else:
-          # 一部キャンセル（残った日時だけスプレッドシートを上書き）
+          # 一部キャンセルの場合（残った日時だけ上書き）
           updated_dates_str = "\n".join(remaining_dates)
           ws.update_cell(row_idx, 6, updated_dates_str)
 
-        # キャンセルメールを送信
+        # メール送信（「キャンセルした日時」と「残っている日時」の両方を渡す）
         send_cancel_email(
             st.session_state["target_email"],
             st.session_state["target_name"],
             cancelled_selected,
+            remaining_dates,
         )
 
         st.session_state["cancelled_items_completed"] = cancelled_selected
+        st.session_state["remaining_items_completed"] = remaining_dates
         st.session_state["cancel_step"] = 3
         st.cache_resource.clear()
         st.rerun()
@@ -283,13 +319,21 @@ elif st.session_state["cancel_step"] == 3:
 
   st.success("✅ ご予約のキャンセル手続きが完了いたしました。")
 
-  st.write("### 📄 キャンセル内容")
+  st.write("### 📄 キャンセルされた内容")
   for d in st.session_state.get("cancelled_items_completed", []):
     st.write(f"・ {shorten_date_str(d)}")
 
-  st.info(
-      f"✉️ **{st.session_state['target_email']}**"
-      " へキャンセル完了メールを送信いたしました。"
+  # 残っている予約がある場合のみ画面上にも表示
+  remaining = st.session_state.get("remaining_items_completed", [])
+  if remaining:
+    st.write("")
+    st.info("### 📌 引き続きご予約中の内容")
+    for d in remaining:
+      st.write(f"・ {shorten_date_str(d)}")
+
+  st.write("")
+  st.write(
+      f"✉️ **{st.session_state['target_email']}** へ詳細メールを送信いたしました。"
   )
 
   st.write("")
