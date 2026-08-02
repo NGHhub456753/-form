@@ -49,19 +49,16 @@ def get_worksheet():
 
 # 日時テキストを短く＆正しい曜日に整形する関数
 def shorten_date_str(text):
-  # 曜日の修正
   text = text.replace("8月24日（土）", "8月24日（月）")
   text = text.replace("8月24日(土)", "8月24日（月）")
   text = text.replace("8月25日（日）", "8月25日（火）")
   text = text.replace("8月25日(日)", "8月25日（火）")
 
-  # 店名の短縮
   text = text.replace("スターバックス インターパークスタジアム店", "スタバ ステージ店")
   text = text.replace("スターバックスインターパークスタジアム店", "スタバ ステージ店")
   text = text.replace("スターバックス FKD店", "スタバ FKD店")
   text = text.replace("スターバックスFKD店", "スタバ FKD店")
 
-  # 内容の短縮
   text = text.replace("折り紙でお花づくり", "お花づくり")
   return text
 
@@ -77,12 +74,12 @@ def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
     msg["Reply-To"] = CONTACT_EMAIL
     msg["Subject"] = "【キャンセル受付】折り紙体験ワークショップの予約キャンセル"
 
-    # キャンセルした日時のリスト（整形済み）
+    # キャンセルした日時のリスト
     cancelled_html = "<br>".join(
         [f"・ {shorten_date_str(d)}" for d in cancelled_dates]
     )
 
-    # 残っている予約日時のHTMLブロック作成（ある場合のみ）
+    # 残っている予約がある場合のみ「引き続きご予約中の日時」ブロックを生成
     remaining_block_html = ""
     if remaining_dates:
       remaining_html = "<br>".join(
@@ -97,7 +94,6 @@ def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
     </div>
     """
 
-    # Gmail等の自動折りたたみ防止ID
     unique_ref = str(uuid.uuid4())[:8]
 
     body_html = f"""
@@ -124,7 +120,6 @@ def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
         お問い合わせ先：<a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a>
     </p>
 
-    <!-- Gmailの自動折りたたみ防止用ダミーID -->
     <div style="display:none !important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; font-size:0px;">
         Ref-ID: {unique_ref}
     </div>
@@ -173,7 +168,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ステップ管理
 if "cancel_step" not in st.session_state:
   st.session_state["cancel_step"] = 1
 
@@ -273,7 +267,6 @@ elif st.session_state["cancel_step"] == 2:
         ws = get_worksheet()
         row_idx = st.session_state["target_row_idx"]
 
-        # 残る予約日時を計算
         remaining_dates = [
             d
             for d in st.session_state["target_dates"]
@@ -281,15 +274,12 @@ elif st.session_state["cancel_step"] == 2:
         ]
 
         if not remaining_dates:
-          # 全件キャンセルの場合
           ws.update_cell(row_idx, 6, "")
           ws.update_cell(row_idx, 8, "キャンセル")
         else:
-          # 一部キャンセルの場合（残った日時だけ上書き）
           updated_dates_str = "\n".join(remaining_dates)
           ws.update_cell(row_idx, 6, updated_dates_str)
 
-        # メール送信（「キャンセルした日時」と「残っている日時」の両方を渡す）
         send_cancel_email(
             st.session_state["target_email"],
             st.session_state["target_name"],
@@ -323,7 +313,6 @@ elif st.session_state["cancel_step"] == 3:
   for d in st.session_state.get("cancelled_items_completed", []):
     st.write(f"・ {shorten_date_str(d)}")
 
-  # 残っている予約がある場合のみ画面上にも表示
   remaining = st.session_state.get("remaining_items_completed", [])
   if remaining:
     st.write("")
