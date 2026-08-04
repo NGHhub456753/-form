@@ -12,5 +12,6 @@ jobs:
     steps:
       - name: Send Request to Streamlit App
         run: |
-          curl -sS -L https://8zzzhcibve6lr2r2k4pvfj.streamlit.app > /dev/null
-          curl -sS -L https://djks33sfzskwjzeam4mbcr.streamlit.app > /dev/null
+          curl -sS -k --max-redirs 10 "https://8zzzhcibve6lr2r2k4pvfj.streamlit.app" || true
+          curl -sS -k --max-redirs 10 "https://djks33sfzskwjzeam4mbcr.streamlit.app" || true
+          
