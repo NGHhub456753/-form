@@ -1,17 +1,20 @@
-name: Keep Streamlit Alive
+name: Keep Streamlit Alive via Auto Commit
 
 on:
   schedule:
-    # 毎日2時間おきに実行 (UTC時間)
-    - cron: '0 */2 * * *'
+    # 6時間おきに自動で空コミットを送信
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Request to Streamlit App
+      - uses: actions/checkout@v3
+
+      - name: Dummy Commit to Trigger Rebuild
         run: |
-          curl -sS -k --max-redirs 10 "https://8zzzhcibve6lr2r2k4pvfj.streamlit.app" || true
-          curl -sS -k --max-redirs 10 "https://djks33sfzskwjzeam4mbcr.streamlit.app" || true
-          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Chore: Auto keep-alive rebuild"
+          git push
