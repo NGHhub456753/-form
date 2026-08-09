@@ -464,17 +464,17 @@ elif st.session_state["booking_step"] == 2:
   with st.form("date_agree_form"):
     st.subheader("🗓️ 参加希望日時の選択（複数えらべます）*")
 
-    # 📍 会場 1
+    # 📍 会場 1（スターバックス インターパークスタジアム店）
     st.markdown(
-        """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：折り紙でお花づくり</span></div>""",
+        """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：<br>・14:00〜 折り紙でお花づくり<br>・18:00〜 折り紙でランタン制作</span></div>""",
         unsafe_allow_html=True,
     )
-    d1 = st.checkbox("8月24日（月）14:00〜")
-    d2 = st.checkbox("8月24日（月）18:00〜")
+    d1 = st.checkbox("8月24日（月）14:00〜（折り紙でお花づくり）")
+    d2 = st.checkbox("8月24日（月）18:00〜（折り紙でランタン制作）")
 
     st.write("")
 
-    # 📍 会場 2
+    # 📍 会場 2（スターバックス FKD店）
     st.markdown(
         """<div class="venue-header">📍 スターバックス FKD店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：折り紙ランタン制作</span></div>""",
         unsafe_allow_html=True,
@@ -520,8 +520,8 @@ elif st.session_state["booking_step"] == 2:
       selected_dates_html.append(html_item)
 
     if d2:
-      txt = "8月24日（月）18:00〜 スターバックス インターパークスタジアム店（折り紙でお花づくり）"
-      html_item = f'8月24日（月）18:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でお花づくり）'
+      txt = "8月24日（月）18:00〜 スターバックス インターパークスタジアム店（折り紙でランタン制作）"
+      html_item = f'8月24日（月）18:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でランタン制作）'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
