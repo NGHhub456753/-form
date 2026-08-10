@@ -109,7 +109,7 @@ def get_slot_counts():
   return counts
 
 
-# 日時テキストを短く＆正しい曜日に整形する関数
+# 日時テキストを短く表示用に整形する関数
 def shorten_date_str(text):
   text = text.replace("8月24日（土）", "8月24日（月）")
   text = text.replace("8月24日(土)", "8月24日（月）")
@@ -240,28 +240,21 @@ header {
 }
 
 .main-header {
-    background-color: #F0FDF4;
-    padding: 20px;
+    background-color: #FEF2F2;
+    padding: 16px 20px;
     border-radius: 12px;
-    border-left: 6px solid #22C55E;
+    border-left: 6px solid #EF4444;
     margin-bottom: 24px;
 }
 .main-title {
-    font-size: 1.5rem !important;
+    font-size: 1.35rem !important;
     font-weight: 800;
-    color: #15803D;
-    margin: 0 0 8px 0;
-}
-.main-subtitle {
-    font-size: 0.95rem;
-    color: #166534;
+    color: #991B1B;
     margin: 0;
 }
 </style>
-
 <div class="main-header">
     <div class="main-title">🌸 折り紙体験ワークショップ 予約フォーム</div>
-    <div class="main-subtitle">ご希望の日時を選択し、必要事項をご入力のうえお申し込みください。</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -280,11 +273,13 @@ slot_counts = get_slot_counts()
 # ==========================================
 if st.session_state["page_step"] == 1:
 
-  with st.form("booking_form"):
-    st.markdown("### 1. 参加日時の選択（複数選択可）")
-    st.caption("※ 定員に達した枠は選択できません。")
+  st.markdown("### 🔍 参加日時の選択")
+  st.write("ご希望の日時を選択し、必要事項をご入力のうえお申し込みください。")
 
-    selected_slots = []
+  selected_slots = []
+
+  with st.form("booking_form"):
+    st.write("---")
 
     for slot_key, slot_name in SLOTS.items():
       current_count = slot_counts.get(slot_key, 0)
@@ -293,19 +288,20 @@ if st.session_state["page_step"] == 1:
 
       short_label = shorten_date_str(slot_name)
 
-      if is_full:
-        st.checkbox(
-            f"❌ {short_label}（満席）", disabled=True, key=slot_key
-        )
-      else:
-        cb = st.checkbox(
-            f"🗓️ {short_label}（残数: {rem_seats}名）", key=slot_key
-        )
-        if cb:
-          selected_slots.append(slot_key)
+      with st.container(border=True):
+        if is_full:
+          st.checkbox(
+              f"❌ {short_label}（満席）", disabled=True, key=slot_key
+          )
+        else:
+          cb = st.checkbox(
+              f"🗓️  {short_label}（残数: {rem_seats}名）", key=slot_key
+          )
+          if cb:
+            selected_slots.append(slot_key)
 
-    st.markdown("---")
-    st.markdown("### 2. お客様情報の入力")
+    st.write("")
+    st.markdown("### 📋 お客様情報の入力")
 
     name = st.text_input("お名前（必須）", placeholder="例: 山田 太郎")
     email = st.text_input("メールアドレス（必須）", placeholder="例: example@email.com")
@@ -463,6 +459,6 @@ elif st.session_state["page_step"] == 3:
     )
 
   st.write("")
-  if st.button("トップに戻る", use_container_width=True):
+  if st.button("トップ画面に戻る", use_container_width=True):
     st.session_state["page_step"] = 1
     st.rerun()
