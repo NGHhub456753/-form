@@ -31,7 +31,6 @@ MAP_URL_STAGE = (
 MAP_URL_FKD = "https://maps.app.goo.gl/yY55vV7HQcb4yHxV7"  # スタバ FKD店
 
 # 時間枠の定義 (内部ID: 表示名)
-# 8月24日 18:00〜 のみ「ランタンづくり」
 SLOTS = {
     "slot_1": (
         "8月24日（月）15:00〜16:00（スターバックス"
@@ -239,22 +238,22 @@ header {
     pointer-events: none !important;
 }
 
-.main-header {
+.cancel-header {
     background-color: #FEF2F2;
     padding: 16px 20px;
     border-radius: 12px;
     border-left: 6px solid #EF4444;
     margin-bottom: 24px;
 }
-.main-title {
+.cancel-title {
     font-size: 1.35rem !important;
     font-weight: 800;
     color: #991B1B;
     margin: 0;
 }
 </style>
-<div class="main-header">
-    <div class="main-title">🌸 折り紙体験ワークショップ 予約フォーム</div>
+<div class="cancel-header">
+    <div class="cancel-title">🌸 ご予約手続き</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -264,17 +263,18 @@ if "page_step" not in st.session_state:
   st.session_state["page_step"] = 1
 
 
-# リアルタイムの各枠の予約件数を取得
 slot_counts = get_slot_counts()
 
 
 # ==========================================
-# 🚀 ページ 1: 入力フォーム
+# 🚀 ページ 1: 入力画面
 # ==========================================
 if st.session_state["page_step"] == 1:
 
   st.markdown("### 🔍 参加日時の選択")
-  st.write("ご希望の日時を選択し、必要事項をご入力のうえお申し込みください。")
+  st.write(
+      "希望する日時にチェックを入れて、必要事項を入力し「確認画面へ進む」を押してください。（複数選択可）"
+  )
 
   selected_slots = []
 
@@ -286,16 +286,16 @@ if st.session_state["page_step"] == 1:
       rem_seats = CAPACITY_LIMIT - current_count
       is_full = rem_seats <= 0
 
-      short_label = shorten_date_str(slot_name)
+      short_text = shorten_date_str(slot_name)
 
       with st.container(border=True):
         if is_full:
           st.checkbox(
-              f"❌ {short_label}（満席）", disabled=True, key=slot_key
+              f"❌  {short_text}（満席）", disabled=True, key=slot_key
           )
         else:
           cb = st.checkbox(
-              f"🗓️  {short_label}（残数: {rem_seats}名）", key=slot_key
+              f"🗓️  {short_text}（残数: {rem_seats}名）", key=slot_key
           )
           if cb:
             selected_slots.append(slot_key)
@@ -315,7 +315,6 @@ if st.session_state["page_step"] == 1:
     submit_btn = st.form_submit_button("確認画面へ進む", use_container_width=True)
 
   if submit_btn:
-    # バリデーションチェック
     email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
     phone_pattern = r"^\d{2,4}-?\d{2,4}-?\d{3,4}$"
 
@@ -328,7 +327,6 @@ if st.session_state["page_step"] == 1:
     elif not phone.strip() or not re.match(phone_pattern, phone.strip()):
       st.warning("⚠️ 正しい電話番号を入力してください（ハイフン可）。")
     else:
-      # 最新の空き枠チェック（同時送信の重複防止）
       latest_counts = get_slot_counts()
       overbooked = False
       for s_key in selected_slots:
@@ -360,7 +358,7 @@ elif st.session_state["page_step"] == 2:
   selected_slot_names = [SLOTS[k] for k in data["selected_slots"]]
 
   st.markdown("### 📋 ご予約内容の確認")
-  st.info("以下の内容で間違いがなければ「予約を確定する」を押してください。")
+  st.info("以下の内容で間違いがなければ「選択した内容で予約する」を押してください。")
 
   with st.container(border=True):
     st.markdown("#### ■ 選択された日時")
@@ -377,63 +375,62 @@ elif st.session_state["page_step"] == 2:
       st.write(f"**ご質問・ご要望:** {data['comment']}")
 
   st.write("")
-  col1, col2 = st.columns(2)
+  with st.form("confirm_form"):
+    confirm_submit = st.form_submit_button(
+        "選択した内容で予約する", use_container_width=True
+    )
 
-  with col1:
-    if st.button("← 修正する", use_container_width=True):
-      st.session_state["page_step"] = 1
+  if confirm_submit:
+    try:
+      ws = get_worksheet()
+
+      latest_counts = get_slot_counts()
+      for s_key in data["selected_slots"]:
+        if CAPACITY_LIMIT - latest_counts.get(s_key, 0) <= 0:
+          st.error(
+              f"申し訳ありません。選択された「{SLOTS[s_key]}」が直前で満席になりました。"
+          )
+          st.session_state["page_step"] = 1
+          st.rerun()
+
+      import datetime
+
+      now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      joined_slots = "\n".join(selected_slot_names)
+
+      new_row = [
+          data["name"],
+          data["email"],
+          data["age"],
+          data["phone"],
+          data["comment"],
+          joined_slots,
+          now_str,
+          "確定",
+      ]
+
+      ws.append_row(new_row)
+
+      send_confirmation_email(
+          data["email"],
+          data["name"],
+          data["age"],
+          data["phone"],
+          data["comment"],
+          selected_slot_names,
+      )
+
+      st.session_state["page_step"] = 3
+      st.cache_resource.clear()
       st.rerun()
 
-  with col2:
-    if st.button("予約を確定する", type="primary", use_container_width=True):
-      try:
-        ws = get_worksheet()
+    except Exception as e:
+      st.error(f"⚠️ 予約処理中にエラーが発生しました: {e}")
 
-        # 確定直前に再度の定員オーバーチェック
-        latest_counts = get_slot_counts()
-        for s_key in data["selected_slots"]:
-          if CAPACITY_LIMIT - latest_counts.get(s_key, 0) <= 0:
-            st.error(
-                f"申し訳ありません。選択された「{SLOTS[s_key]}」が直前で満席になりました。"
-            )
-            st.session_state["page_step"] = 1
-            st.rerun()
-
-        # スプレッドシートへ書き込み
-        import datetime
-
-        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        joined_slots = "\n".join(selected_slot_names)
-
-        new_row = [
-            data["name"],
-            data["email"],
-            data["age"],
-            data["phone"],
-            data["comment"],
-            joined_slots,
-            now_str,
-            "確定",
-        ]
-
-        ws.append_row(new_row)
-
-        # 確認メール送信
-        send_confirmation_email(
-            data["email"],
-            data["name"],
-            data["age"],
-            data["phone"],
-            data["comment"],
-            selected_slot_names,
-        )
-
-        st.session_state["page_step"] = 3
-        st.cache_resource.clear()
-        st.rerun()
-
-      except Exception as e:
-        st.error(f"⚠️ 予約処理中にエラーが発生しました: {e}")
+  st.write("")
+  if st.button("← 修正する"):
+    st.session_state["page_step"] = 1
+    st.rerun()
 
 
 # ==========================================
@@ -444,19 +441,17 @@ elif st.session_state["page_step"] == 3:
   data = st.session_state.get("form_data", {})
   selected_slot_names = [SLOTS[k] for k in data.get("selected_slots", [])]
 
-  st.success("🎉 ご予約が完了いたしました！")
+  st.success("✅ ご予約の手続きが完了いたしました。")
 
   with st.container(border=True):
-    st.markdown("### 📄 予約完了内容")
+    st.markdown("### 📄 ご予約内容")
     for s_name in selected_slot_names:
       st.write(f"・ {shorten_date_str(s_name)}")
 
-    st.write("")
-    st.write(
-        f"✉️ **{data.get('email')}** へ確認メールを送信いたしました。<br>"
-        "メールが届かない場合は、迷惑メールフォルダをご確認いただくか、お問い合わせください。",
-        unsafe_allow_html=True,
-    )
+  st.write("")
+  st.write(
+      f"✉️ **{data.get('email')}** へ完了メールを送信いたしました。"
+  )
 
   st.write("")
   if st.button("トップ画面に戻る", use_container_width=True):
