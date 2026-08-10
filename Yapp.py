@@ -466,9 +466,9 @@ elif st.session_state["booking_step"] == 2:
         """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：<br>・折り紙でお花づくり / ランタン制作</span></div>""",
         unsafe_allow_html=True,
     )
-    d1 = st.checkbox("8月24日（月）15:00〜")
-    d2 = st.checkbox("8月24日（月）16:00〜")
-    d3 = st.checkbox("8月24日（月）18:00〜")
+    d1 = st.checkbox("8月24日（月）15:00〜(お花作り)")
+    d2 = st.checkbox("8月24日（月）16:00〜(お花作り)")
+    d3 = st.checkbox("8月24日（月）18:00〜(ランタン制作)")
 
     st.write("")
 
