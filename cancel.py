@@ -21,7 +21,9 @@ CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "aonisai0111@gmail.com"
 
 # Googleマップ URL定義
-MAP_URL_STAGE = "https://maps.app.goo.gl/HH1EytAvCpih6sbaA"  # スタバ ステージ店（インターパーク）
+MAP_URL_STAGE = (
+    "https://maps.app.goo.gl/HH1EytAvCpih6sbaA"  # スタバ ステージ店（インターパーク）
+)
 MAP_URL_FKD = "https://maps.app.goo.gl/yY55vV7HQcb4yHxV7"  # スタバ FKD店
 
 
@@ -51,13 +53,9 @@ def get_worksheet():
   return sheet.sheet1
 
 
-# 日時テキストを短く＆正しい曜日に整形する関数
+# 日時テキストを短く表示用に整形する関数
 def shorten_date_str(text):
-  text = text.replace("8月24日（土）", "8月24日（月）")
-  text = text.replace("8月24日(土)", "8月24日（月）")
-  text = text.replace("8月25日（日）", "8月25日（火）")
-  text = text.replace("8月25日(日)", "8月25日（火）")
-
+  # 必要に応じて旧表記や文字列の置換ルールを追加・整理
   text = text.replace("スターバックス インターパークスタジアム店", "スタバ ステージ店")
   text = text.replace("スターバックスインターパークスタジアム店", "スタバ ステージ店")
   text = text.replace("スターバックス FKD店", "スタバ FKD店")
