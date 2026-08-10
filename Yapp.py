@@ -1,7 +1,6 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import re
 import uuid
 
 from google.oauth2.service_account import Credentials
@@ -12,8 +11,8 @@ import streamlit as st
 # ⚙️ 基本設定 & 定数
 # ==========================================
 st.set_page_config(
-    page_title="折り紙体験ワークショップ 予約フォーム",
-    page_icon="🌸",
+    page_title="折り紙体験ワークショップ 予約キャンセル",
+    page_icon="❌",
     layout="centered",
 )
 
@@ -21,42 +20,11 @@ SPREADSHEET_NAME = "イベント予約一覧"
 CONTACT_EMAIL = "aonisai0111@gmail.com"
 ADMIN_EMAIL = "aonisai0111@gmail.com"
 
-# 各枠の上限人数（名）
-CAPACITY_LIMIT = 6
-
 # Googleマップ URL定義
 MAP_URL_STAGE = (
     "https://maps.app.goo.gl/HH1EytAvCpih6sbaA"  # スタバ ステージ店（インターパーク）
 )
 MAP_URL_FKD = "https://maps.app.goo.gl/yY55vV7HQcb4yHxV7"  # スタバ FKD店
-
-# 時間枠の定義 (内部ID: 表示名)
-SLOTS = {
-    "slot_1": (
-        "8月24日（月）15:00〜16:00（スターバックス"
-        " インターパークスタジアム店）★折り紙でお花づくり"
-    ),
-    "slot_2": (
-        "8月24日（月）16:00〜17:00（スターバックス"
-        " インターパークスタジアム店）★折り紙でお花づくり"
-    ),
-    "slot_3": (
-        "8月24日（月）18:00〜19:00（スターバックス"
-        " インターパークスタジアム店）★折り紙でランタンづくり"
-    ),
-    "slot_4": (
-        "8月25日（火）15:00〜16:00（スターバックス"
-        " FKD店）★折り紙でお花づくり"
-    ),
-    "slot_5": (
-        "8月25日（火）16:00〜17:00（スターバックス"
-        " FKD店）★折り紙でお花づくり"
-    ),
-    "slot_6": (
-        "8月25日（火）18:00〜19:00（スターバックス"
-        " FKD店）★折り紙でお花づくり"
-    ),
-}
 
 
 # ==========================================
@@ -85,43 +53,15 @@ def get_worksheet():
   return sheet.sheet1
 
 
-def get_slot_counts():
-  ws = get_worksheet()
-  records = ws.get_all_values()
-
-  counts = {k: 0 for k in SLOTS.keys()}
-
-  if len(records) > 1:
-    for row in records[1:]:
-      if len(row) >= 8:
-        dates_cell = row[5]
-        status = row[7].strip()
-
-        if status != "キャンセル" and dates_cell:
-          selected_lines = dates_cell.split("\n")
-          for slot_key, slot_name in SLOTS.items():
-            for line in selected_lines:
-              if slot_name in line:
-                counts[slot_key] += 1
-                break
-
-  return counts
-
-
 # 日時テキストを短く表示用に整形する関数
 def shorten_date_str(text):
-  text = text.replace("8月24日（土）", "8月24日（月）")
-  text = text.replace("8月24日(土)", "8月24日（月）")
-  text = text.replace("8月25日（日）", "8月25日（火）")
-  text = text.replace("8月25日(日)", "8月25日（火）")
-
+  # 必要に応じて旧表記や文字列の置換ルールを追加・整理
   text = text.replace("スターバックス インターパークスタジアム店", "スタバ ステージ店")
   text = text.replace("スターバックスインターパークスタジアム店", "スタバ ステージ店")
   text = text.replace("スターバックス FKD店", "スタバ FKD店")
   text = text.replace("スターバックスFKD店", "スタバ FKD店")
 
   text = text.replace("折り紙でお花づくり", "お花づくり")
-  text = text.replace("折り紙でランタンづくり", "ランタンづくり")
   return text
 
 
@@ -140,9 +80,7 @@ def format_date_with_map_link(text):
   return shortened
 
 
-def send_confirmation_email(
-    to_email, name, age, phone, comment, selected_slots_names
-):
+def send_cancel_email(to_email, name, cancelled_dates, remaining_dates):
   try:
     sender_email = st.secrets["smtp"]["email"]
     sender_password = st.secrets["smtp"]["password"]
@@ -151,17 +89,25 @@ def send_confirmation_email(
     msg["From"] = f"イベント事務局 <{sender_email}>"
     msg["To"] = to_email
     msg["Reply-To"] = CONTACT_EMAIL
-    msg["Subject"] = "【予約完了】折り紙体験ワークショップのお申し込み"
+    msg["Subject"] = "【キャンセル受付】折り紙体験ワークショップの予約キャンセル"
 
-    dates_html = "<br>".join(
-        [f"・ {format_date_with_map_link(s)}" for s in selected_slots_names]
+    cancelled_html = "<br>".join(
+        [f"・ {format_date_with_map_link(d)}" for d in cancelled_dates]
     )
 
-    comment_html = (
-        f"<p style='margin-bottom:0;'><b>ご質問・ご要望：</b><br>{comment}</p>"
-        if comment
-        else ""
-    )
+    remaining_block_html = ""
+    if remaining_dates:
+      remaining_html = "<br>".join(
+          [f"・ {format_date_with_map_link(d)}" for d in remaining_dates]
+      )
+      remaining_block_html = f"""
+    <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <h3 style="margin-top:0; color: #1e40af; border-bottom: 2px solid #60a5fa; padding-bottom: 5px;">■ 引き続きご予約中の日時</h3>
+        <p style="font-size: 15px; line-height: 1.8; color: #1e3a8a; margin-bottom: 0;">
+            {remaining_html}
+        </p>
+    </div>
+    """
 
     unique_ref = str(uuid.uuid4())[:8]
 
@@ -170,28 +116,22 @@ def send_confirmation_email(
 <html>
 <body style="font-family: sans-serif; line-height: 1.6; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <p>{name} 様</p>
-    <p>「折り紙体験ワークショップ」へのお申し込み、誠にありがとうございます。<br>以下の内容でご予約を受け付けいたしました。</p>
+    <p>「折り紙体験ワークショップ」の以下のご予約キャンセルを受け付けいたしました。</p>
     
-    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 20px 0;">
-        <h3 style="margin-top:0; color: #166534; border-bottom: 2px solid #86efac; padding-bottom: 5px;">■ ご予約日時・会場</h3>
-        <p style="font-size: 15px; line-height: 1.8; color: #14532d; margin-bottom: 0;">
-            {dates_html}
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <h3 style="margin-top:0; color: #991b1b; border-bottom: 2px solid #f87171; padding-bottom: 5px;">■ キャンセルされた日時</h3>
+        <p style="font-size: 15px; line-height: 1.8; color: #7f1d1d; margin-bottom: 0;">
+            {cancelled_html}
         </p>
     </div>
 
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin: 20px 0;">
-        <h3 style="margin-top:0; color: #334155; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px;">■ お客様情報</h3>
-        <p style="margin-bottom: 5px;"><b>お名前：</b> {name} 様</p>
-        <p style="margin-bottom: 5px;"><b>年齢：</b> {age} 歳</p>
-        <p style="margin-bottom: 5px;"><b>電話番号：</b> {phone}</p>
-        {comment_html}
-    </div>
+    {remaining_block_html}
 
     <p style="margin-top: 25px;">当日のご参加を心よりお待ちしております。</p>
     
     <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 25px 0;">
     <p style="font-size: 13px; color: #64748b;">
-        ご不明な点やミスの修正、予約キャンセルにつきましては以下までご連絡ください。<br>
+        ご不明な点がございましたら以下までご連絡ください。<br>
         お問い合わせ先：<a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a>
     </p>
 
@@ -253,207 +193,172 @@ header {
 }
 </style>
 <div class="cancel-header">
-    <div class="cancel-title">🌸 ご予約手続き</div>
+    <div class="cancel-title">❌ ご予約キャンセル手続き</div>
 </div>
 """,
     unsafe_allow_html=True,
 )
 
-if "page_step" not in st.session_state:
-  st.session_state["page_step"] = 1
-
-
-slot_counts = get_slot_counts()
+if "cancel_step" not in st.session_state:
+  st.session_state["cancel_step"] = 1
 
 
 # ==========================================
-# 🚀 ページ 1: 入力画面
+# 🚀 ページ 1: メールアドレス検索画面
 # ==========================================
-if st.session_state["page_step"] == 1:
+if st.session_state["cancel_step"] == 1:
 
-  st.markdown("### 🔍 参加日時の選択")
+  st.markdown("### 🔍 ご予約の検索")
   st.write(
-      "希望する日時にチェックを入れて、必要事項を入力し「確認画面へ進む」を押してください。（複数選択可）"
+      "予約時に入力した**メールアドレス**を入力して「検索する」を押してください。"
   )
 
-  selected_slots = []
+  with st.form("search_form"):
+    search_email = st.text_input(
+        "メールアドレス", placeholder="例: example@email.com"
+    )
+    search_btn = st.form_submit_button("予約を検索する", use_container_width=True)
 
-  with st.form("booking_form"):
-    st.write("---")
+  if search_btn:
+    if not search_email:
+      st.warning("⚠️ メールアドレスを入力してください。")
+    else:
+      try:
+        ws = get_worksheet()
+        all_records = ws.get_all_values()
 
-    for slot_key, slot_name in SLOTS.items():
-      current_count = slot_counts.get(slot_key, 0)
-      rem_seats = CAPACITY_LIMIT - current_count
-      is_full = rem_seats <= 0
+        found_rows = []
+        for idx, row in enumerate(all_records[1:], start=2):
+          if len(row) >= 8:
+            r_email = row[1].strip()
+            r_status = row[7].strip()
+            if (
+                r_email.lower() == search_email.strip().lower()
+                and r_status != "キャンセル"
+            ):
+              found_rows.append((idx, row))
 
-      short_text = shorten_date_str(slot_name)
-
-      with st.container(border=True):
-        if is_full:
-          st.checkbox(
-              f"❌  {short_text}（満席）", disabled=True, key=slot_key
+        if not found_rows:
+          st.error(
+              "❌ 該当するご予約が見つかりませんでした。メールアドレスをご確認ください。"
           )
         else:
-          cb = st.checkbox(
-              f"🗓️  {short_text}（残数: {rem_seats}名）", key=slot_key
-          )
-          if cb:
-            selected_slots.append(slot_key)
+          target_row_idx, target_row = found_rows[-1]
+          raw_dates = target_row[5].split("\n")
+          dates_list = [d.strip() for d in raw_dates if d.strip()]
 
-    st.write("")
-    st.markdown("### 📋 お客様情報の入力")
+          st.session_state["target_row_idx"] = target_row_idx
+          st.session_state["target_name"] = target_row[0]
+          st.session_state["target_email"] = target_row[1]
+          st.session_state["target_dates"] = dates_list
 
-    name = st.text_input("お名前（必須）", placeholder="例: 山田 太郎")
-    email = st.text_input("メールアドレス（必須）", placeholder="例: example@email.com")
-    age = st.number_input("年齢（必須）", min_value=1, max_value=120, value=20)
-    phone = st.text_input("電話番号（必須）", placeholder="例: 090-1234-5678")
-    comment = st.text_area(
-        "ご質問・ご要望（任意）", placeholder="気になる点などがあればご記入ください"
-    )
-
-    st.write("")
-    submit_btn = st.form_submit_button("確認画面へ進む", use_container_width=True)
-
-  if submit_btn:
-    email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-    phone_pattern = r"^\d{2,4}-?\d{2,4}-?\d{3,4}$"
-
-    if not selected_slots:
-      st.warning("⚠️ 参加日時を少なくとも1つ選択してください。")
-    elif not name.strip():
-      st.warning("⚠️ お名前を入力してください。")
-    elif not email.strip() or not re.match(email_pattern, email.strip()):
-      st.warning("⚠️ 正しいメールアドレスの形式で入力してください。")
-    elif not phone.strip() or not re.match(phone_pattern, phone.strip()):
-      st.warning("⚠️ 正しい電話番号を入力してください（ハイフン可）。")
-    else:
-      latest_counts = get_slot_counts()
-      overbooked = False
-      for s_key in selected_slots:
-        if CAPACITY_LIMIT - latest_counts.get(s_key, 0) <= 0:
-          overbooked = True
-          st.error(
-              f"申し訳ありません。選択された「{SLOTS[s_key]}」は直前に満席となりました。"
-          )
-
-      if not overbooked:
-        st.session_state["form_data"] = {
-            "selected_slots": selected_slots,
-            "name": name.strip(),
-            "email": email.strip(),
-            "age": age,
-            "phone": phone.strip(),
-            "comment": comment.strip(),
-        }
-        st.session_state["page_step"] = 2
-        st.rerun()
-
-
-# ==========================================
-# 🚀 ページ 2: 確認画面
-# ==========================================
-elif st.session_state["page_step"] == 2:
-
-  data = st.session_state["form_data"]
-  selected_slot_names = [SLOTS[k] for k in data["selected_slots"]]
-
-  st.markdown("### 📋 ご予約内容の確認")
-  st.info("以下の内容で間違いがなければ「選択した内容で予約する」を押してください。")
-
-  with st.container(border=True):
-    st.markdown("#### ■ 選択された日時")
-    for s_name in selected_slot_names:
-      st.write(f"・ {shorten_date_str(s_name)}")
-
-    st.markdown("---")
-    st.markdown("#### ■ お客様情報")
-    st.write(f"**お名前:** {data['name']} 様")
-    st.write(f"**メールアドレス:** {data['email']}")
-    st.write(f"**年齢:** {data['age']} 歳")
-    st.write(f"**電話番号:** {data['phone']}")
-    if data["comment"]:
-      st.write(f"**ご質問・ご要望:** {data['comment']}")
-
-  st.write("")
-  with st.form("confirm_form"):
-    confirm_submit = st.form_submit_button(
-        "選択した内容で予約する", use_container_width=True
-    )
-
-  if confirm_submit:
-    try:
-      ws = get_worksheet()
-
-      latest_counts = get_slot_counts()
-      for s_key in data["selected_slots"]:
-        if CAPACITY_LIMIT - latest_counts.get(s_key, 0) <= 0:
-          st.error(
-              f"申し訳ありません。選択された「{SLOTS[s_key]}」が直前で満席になりました。"
-          )
-          st.session_state["page_step"] = 1
+          st.session_state["cancel_step"] = 2
           st.rerun()
 
-      import datetime
+      except Exception as e:
+        st.error(f"⚠️ データ取得エラーが発生しました: {e}")
 
-      now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-      joined_slots = "\n".join(selected_slot_names)
 
-      new_row = [
-          data["name"],
-          data["email"],
-          data["age"],
-          data["phone"],
-          data["comment"],
-          joined_slots,
-          now_str,
-          "確定",
-      ]
+# ==========================================
+# 🚀 ページ 2: 日時選択 ＆ キャンセル実行画面
+# ==========================================
+elif st.session_state["cancel_step"] == 2:
 
-      ws.append_row(new_row)
+  st.markdown(
+      f"### 📋 キャンセルする日時の選択\n**{st.session_state['target_name']} 様**"
+      " のご予約情報"
+  )
+  st.info(
+      "キャンセルしたい日時にチェックを入れて「選択した日時をキャンセルする」を押してください。（複数選択可）"
+  )
 
-      send_confirmation_email(
-          data["email"],
-          data["name"],
-          data["age"],
-          data["phone"],
-          data["comment"],
-          selected_slot_names,
-      )
+  cancelled_selected = []
 
-      st.session_state["page_step"] = 3
-      st.cache_resource.clear()
-      st.rerun()
+  with st.form("cancel_confirm_form"):
+    st.write("---")
 
-    except Exception as e:
-      st.error(f"⚠️ 予約処理中にエラーが発生しました: {e}")
+    for idx, date_str in enumerate(st.session_state["target_dates"]):
+      short_text = shorten_date_str(date_str)
+
+      with st.container(border=True):
+        cb = st.checkbox(f"🗓️  {short_text}", key=f"cb_{idx}")
+        if cb:
+          cancelled_selected.append(date_str)
+
+    st.write("")
+    cancel_submit = st.form_submit_button(
+        "選択した日時をキャンセルする", use_container_width=True
+    )
+
+  if cancel_submit:
+    if not cancelled_selected:
+      st.warning("⚠️ キャンセルする日時を少なくとも1つ選択してください。")
+    else:
+      try:
+        ws = get_worksheet()
+        row_idx = st.session_state["target_row_idx"]
+
+        remaining_dates = [
+            d
+            for d in st.session_state["target_dates"]
+            if d not in cancelled_selected
+        ]
+
+        if not remaining_dates:
+          ws.update_cell(row_idx, 6, "")
+          ws.update_cell(row_idx, 8, "キャンセル")
+        else:
+          updated_dates_str = "\n".join(remaining_dates)
+          ws.update_cell(row_idx, 6, updated_dates_str)
+
+        send_cancel_email(
+            st.session_state["target_email"],
+            st.session_state["target_name"],
+            cancelled_selected,
+            remaining_dates,
+        )
+
+        st.session_state["cancelled_items_completed"] = cancelled_selected
+        st.session_state["remaining_items_completed"] = remaining_dates
+        st.session_state["cancel_step"] = 3
+        st.cache_resource.clear()
+        st.rerun()
+
+      except Exception as e:
+        st.error(f"⚠️ キャンセル処理中にエラーが発生しました: {e}")
 
   st.write("")
-  if st.button("← 修正する"):
-    st.session_state["page_step"] = 1
+  if st.button("← 別のメールアドレスでやり直す"):
+    st.session_state["cancel_step"] = 1
     st.rerun()
 
 
 # ==========================================
-# 🚀 ページ 3: 完了画面
+# 🚀 ページ 3: キャンセル完了画面（Web画面）
 # ==========================================
-elif st.session_state["page_step"] == 3:
+elif st.session_state["cancel_step"] == 3:
 
-  data = st.session_state.get("form_data", {})
-  selected_slot_names = [SLOTS[k] for k in data.get("selected_slots", [])]
-
-  st.success("✅ ご予約の手続きが完了いたしました。")
+  st.success("✅ ご予約のキャンセル手続きが完了いたしました。")
 
   with st.container(border=True):
-    st.markdown("### 📄 ご予約内容")
-    for s_name in selected_slot_names:
-      st.write(f"・ {shorten_date_str(s_name)}")
+    st.markdown("### 📄 キャンセルされた内容")
+    for d in st.session_state.get("cancelled_items_completed", []):
+      st.write(f"・ {shorten_date_str(d)}")
+
+    remaining = st.session_state.get("remaining_items_completed", [])
+    if remaining:
+      st.write("")
+      st.info(
+          "✉️ **引き続きご予約中の日時・会場について**\n\n"
+          "他にお申し込み中の日時や会場の詳細につきましては、別途お送りしている完了メールにてご確認いただけます。"
+      )
 
   st.write("")
   st.write(
-      f"✉️ **{data.get('email')}** へ完了メールを送信いたしました。"
+      f"✉️ **{st.session_state['target_email']}** へ完了メールを送信いたしました。"
   )
 
   st.write("")
   if st.button("トップ画面に戻る", use_container_width=True):
-    st.session_state["page_step"] = 1
+    st.session_state["cancel_step"] = 1
     st.rerun()
