@@ -463,11 +463,12 @@ elif st.session_state["booking_step"] == 2:
 
     # 📍 会場 1（スターバックス インターパークスタジアム店）
     st.markdown(
-        """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：<br>・14:00〜 折り紙でお花づくり<br>・18:00〜 折り紙でランタン制作</span></div>""",
+        """<div class="venue-header">📍 スターバックス インターパークスタジアム店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：<br>・折り紙でお花づくり / ランタン制作</span></div>""",
         unsafe_allow_html=True,
     )
-    d1 = st.checkbox("8月24日（月）14:00〜")
-    d2 = st.checkbox("8月24日（月）18:00〜")
+    d1 = st.checkbox("8月24日（月）15:00〜")
+    d2 = st.checkbox("8月24日（月）16:00〜")
+    d3 = st.checkbox("8月24日（月）18:00〜")
 
     st.write("")
 
@@ -476,8 +477,9 @@ elif st.session_state["booking_step"] == 2:
         """<div class="venue-header">📍 スターバックス FKD店<br><span style="font-weight:normal; font-size:0.9rem; color:#475569;">内容：折り紙ランタン制作</span></div>""",
         unsafe_allow_html=True,
     )
-    d3 = st.checkbox("8月25日（火）14:00〜")
-    d4 = st.checkbox("8月25日（火）18:00〜")
+    d4 = st.checkbox("8月25日（火）15:00〜")
+    d5 = st.checkbox("8月25日（火）16:00〜")
+    d6 = st.checkbox("8月25日（火）18:00〜")
 
     notice_html = """<div class="notice-card">
 <div class="notice-title">📌 ご予約のキャンセル・注意事項</div>
@@ -510,24 +512,36 @@ elif st.session_state["booking_step"] == 2:
     selected_dates_html = []
 
     if d1:
-      txt = "8月24日（月）14:00〜 スターバックス インターパークスタジアム店（折り紙でお花づくり）"
-      html_item = f'8月24日（月）14:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でお花づくり）'
+      txt = "8月24日（月）15:00〜 スターバックス インターパークスタジアム店"
+      html_item = f'8月24日（月）15:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
     if d2:
-      txt = "8月24日（月）18:00〜 スターバックス インターパークスタジアム店（折り紙でランタン制作）"
-      html_item = f'8月24日（月）18:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>（折り紙でランタン制作）'
+      txt = "8月24日（月）16:00〜 スターバックス インターパークスタジアム店"
+      html_item = f'8月24日（月）16:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
     if d3:
-      txt = "8月25日（火）14:00〜 スターバックス FKD店（折り紙ランタン制作）"
-      html_item = f'8月25日（火）14:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
+      txt = "8月24日（月）18:00〜 スターバックス インターパークスタジアム店"
+      html_item = f'8月24日（月）18:00〜 <a href="{MAP_URL_INTERPARK}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス インターパークスタジアム店</a>'
       selected_dates_text.append(txt)
       selected_dates_html.append(html_item)
 
     if d4:
+      txt = "8月25日（火）15:00〜 スターバックス FKD店（折り紙ランタン制作）"
+      html_item = f'8月25日（火）15:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
+      selected_dates_text.append(txt)
+      selected_dates_html.append(html_item)
+
+    if d5:
+      txt = "8月25日（火）16:00〜 スターバックス FKD店（折り紙ランタン制作）"
+      html_item = f'8月25日（火）16:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
+      selected_dates_text.append(txt)
+      selected_dates_html.append(html_item)
+
+    if d6:
       txt = "8月25日（火）18:00〜 スターバックス FKD店（折り紙ランタン制作）"
       html_item = f'8月25日（火）18:00〜 <a href="{MAP_URL_FKD}" target="_blank" style="color: #0284C7; font-weight: bold; text-decoration: underline;">📍 スターバックス FKD店</a>（折り紙ランタン制作）'
       selected_dates_text.append(txt)
